@@ -1,3 +1,5 @@
+import 'package:cadence/providers/habit_providers.dart';
+import 'package:cadence/utils/habit_schedule.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -233,7 +235,7 @@ class _HabitPicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final expectedAsync = ref.watch(expectedHabitsForDayProvider(day));
+    final expectedAsync = ref.watch(habitsProvider);
     final placedAsync = ref.watch(placedHabitOccurrencesForDayProvider(day));
 
     if (expectedAsync.isLoading || placedAsync.isLoading) {
@@ -276,6 +278,11 @@ class _HabitPicker extends ConsumerWidget {
               primaryColor: CadenceColors.textSecondary,
               prefixIcon: Icons.timer_outlined,
             ),
+            if (isHabitExpectedOn(habit, day))
+              CadenceBadge(
+                label: 'DUE: TODAY',
+                primaryColor: CadenceColors.warning,
+              ),
           ],
           onTap: () => onPick(habit),
         );
@@ -332,7 +339,7 @@ class _PickerRow extends StatelessWidget {
                 Icon(Icons.chevron_right, size: 16, color: color),
               ],
             ),
-            Wrap(spacing: 5, runSpacing: 5, children: badges),
+            Row(spacing: 5, children: badges),
           ],
         ),
       ),
