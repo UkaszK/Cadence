@@ -1,20 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:questlog/data/achievement.dart';
-import 'package:questlog/data/achievement_catalog.dart';
-import 'package:questlog/data/achievement_unlock.dart';
-import 'package:questlog/data/gamification_metrics.dart';
-import 'package:questlog/data/isar_data_store.dart';
-import 'package:questlog/providers/quest_providers.dart';
-import 'package:questlog/providers/side_quest_providers.dart';
+import 'package:cadence/data/achievement.dart';
+import 'package:cadence/data/achievement_catalog.dart';
+import 'package:cadence/data/achievement_unlock.dart';
+import 'package:cadence/data/gamification_metrics.dart';
+import 'package:cadence/data/isar_data_store.dart';
+import 'package:cadence/providers/habit_providers.dart';
+import 'package:cadence/providers/schedule_providers.dart';
 
 final gamificationStateProvider = Provider<AsyncValue<GamificationMetrics>>((
   ref,
 ) {
-  final mainQuestsAsync = ref.watch(assemblerMainQuestsProvider);
-  final sideCompletionsAsync = ref.watch(assemblerSideQuestsProvider);
-  final sideQuestsAsync = ref.watch(sideQuestsProvider);
+  final tasksAsync = ref.watch(scheduledTasksProvider);
+  final occurrencesAsync = ref.watch(habitOccurrencesProvider);
+  final habitsAsync = ref.watch(habitsProvider);
 
-  final states = [mainQuestsAsync, sideCompletionsAsync, sideQuestsAsync];
+  final states = [tasksAsync, occurrencesAsync, habitsAsync];
 
   if (states.any((state) => state.isLoading)) {
     return const AsyncLoading();
@@ -27,9 +27,9 @@ final gamificationStateProvider = Provider<AsyncValue<GamificationMetrics>>((
   return AsyncData(
     computeGamification(
       today: DateTime.now(),
-      mainQuests: mainQuestsAsync.requireValue,
-      sideQuestCompletions: sideCompletionsAsync.requireValue,
-      sideQuests: sideQuestsAsync.requireValue,
+      scheduledTasks: tasksAsync.requireValue,
+      habitOccurrences: occurrencesAsync.requireValue,
+      habits: habitsAsync.requireValue,
     ),
   );
 });

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/achievement.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/achievement.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 /// Opens the tier breakdown for a single achievement.
 Future<void> showAchievementDetailSheet(
@@ -28,8 +28,8 @@ class AchievementDetailSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: QuestLogColors.surface,
-        border: Border.all(color: QuestLogColors.border, width: 1),
+        color: CadenceColors.surface,
+        border: Border.all(color: CadenceColors.border, width: 1),
       ),
       child: SafeArea(
         top: false,
@@ -48,7 +48,7 @@ class AchievementDetailSheet extends StatelessWidget {
                       Text(
                         definition.title,
                         style: GoogleFonts.jetBrainsMono(
-                          color: QuestLogColors.textPrimary,
+                          color: CadenceColors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                         ),
@@ -71,7 +71,7 @@ class AchievementDetailSheet extends StatelessWidget {
             Text(
               definition.description,
               style: GoogleFonts.jetBrainsMono(
-                color: QuestLogColors.textSecondary,
+                color: CadenceColors.textSecondary,
                 fontSize: 11,
               ),
             ),
@@ -106,7 +106,7 @@ class _TierRow extends StatelessWidget {
         Icon(
           earned ? Icons.check_circle : Icons.lock_outline,
           size: 14,
-          color: earned ? tier.color : QuestLogColors.border,
+          color: earned ? tier.color : CadenceColors.border,
         ),
 
         const SizedBox(width: 10),
@@ -115,7 +115,7 @@ class _TierRow extends StatelessWidget {
           child: Text(
             tier.label,
             style: analyticsCaptionStyle(
-              color: earned ? tier.color : QuestLogColors.textSecondary,
+              color: earned ? tier.color : CadenceColors.textSecondary,
             ),
           ),
         ),
@@ -123,7 +123,7 @@ class _TierRow extends StatelessWidget {
         Text(
           definition.unit.format(threshold),
           style: analyticsCaptionStyle(
-            color: earned ? QuestLogColors.textPrimary : QuestLogColors.textSecondary,
+            color: earned ? CadenceColors.textPrimary : CadenceColors.textSecondary,
           ),
         ),
       ],

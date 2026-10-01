@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/achievement.dart';
-import 'package:questlog/data/gamification_metrics.dart';
-import 'package:questlog/providers/achievement_providers.dart';
-import 'package:questlog/screens/achievements_screen.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
+import 'package:cadence/data/achievement.dart';
+import 'package:cadence/data/gamification_metrics.dart';
+import 'package:cadence/providers/achievement_providers.dart';
+import 'package:cadence/screens/achievements_screen.dart';
+import 'package:cadence/theme/cadence_colors.dart';
 
 typedef AchievementUnlockEvent = ({
   AchievementDefinition definition,
@@ -55,7 +55,7 @@ void _showUnlockSnackBar(
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        backgroundColor: QuestLogColors.surface,
+        backgroundColor: CadenceColors.surface,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 4),
         shape: RoundedRectangleBorder(
@@ -72,7 +72,7 @@ void _showUnlockSnackBar(
                   Text(
                     'ACHIEVEMENT UNLOCKED',
                     style: GoogleFonts.jetBrainsMono(
-                      color: QuestLogColors.textSecondary,
+                      color: CadenceColors.textSecondary,
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
                     ),
@@ -81,7 +81,7 @@ void _showUnlockSnackBar(
                   Text(
                     message,
                     style: GoogleFonts.jetBrainsMono(
-                      color: QuestLogColors.textPrimary,
+                      color: CadenceColors.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
                     ),
@@ -93,7 +93,7 @@ void _showUnlockSnackBar(
         ),
         action: SnackBarAction(
           label: 'VIEW',
-          textColor: QuestLogColors.accent,
+          textColor: CadenceColors.accent,
           onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AchievementsScreen()),

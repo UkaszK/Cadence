@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/day.dart';
-import 'package:questlog/data/gamification_metrics.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/day.dart';
+import 'package:cadence/data/gamification_metrics.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 /// Current streak, best streak and the last seven days of activity.
 class StreakCard extends StatelessWidget {
@@ -15,8 +15,8 @@ class StreakCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final active = metrics.currentStreak > 0;
     final color = active
-        ? QuestLogColors.otherAccent
-        : QuestLogColors.textSecondary;
+        ? CadenceColors.otherAccent
+        : CadenceColors.textSecondary;
 
     return AnalyticsCard(
       child: Row(
@@ -80,7 +80,7 @@ class _DayDot extends StatelessWidget {
           decoration: BoxDecoration(
             color: day.active ? color : Colors.transparent,
             border: Border.all(
-              color: day.active ? color : QuestLogColors.border,
+              color: day.active ? color : CadenceColors.border,
               width: 1,
             ),
           ),

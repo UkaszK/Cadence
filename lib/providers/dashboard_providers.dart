@@ -1,20 +1,21 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:questlog/data/assembler_main_quest.dart';
-import 'package:questlog/data/assembler_side_quest.dart';
-import 'package:questlog/data/daily_progress_metrics.dart';
-import 'package:questlog/data/isar_data_store.dart';
-import 'package:questlog/data/side_quest.dart';
-import 'package:questlog/data/sub_task.dart';
-import 'package:questlog/providers/quest_providers.dart';
-import 'package:questlog/providers/side_quest_providers.dart';
-import 'package:questlog/utils/DateTime/date_time_extension.dart';
+import 'package:cadence/data/daily_progress_metrics.dart';
+import 'package:cadence/data/habit.dart';
+import 'package:cadence/data/habit_occurrence.dart';
+import 'package:cadence/data/isar_data_store.dart';
+import 'package:cadence/data/scheduled_task.dart';
+import 'package:cadence/data/sub_task.dart';
+import 'package:cadence/data/task.dart';
+import 'package:cadence/providers/schedule_providers.dart';
+import 'package:cadence/utils/DateTime/date_time_extension.dart';
 
 typedef DashboardState = ({
-  List<AssemblerMainQuest> assemblerMainQuests,
-  List<AssemblerSideQuest> assemblerSideQuests,
-  List<SideQuest> sideQuests,
-  Set<int> completedSideQuestIds,
+  List<ScheduledTask> scheduledTasks,
+  List<HabitOccurrence> habitOccurrences,
+  List<HabitOccurrence> placedHabits,
+  List<Habit> expectedHabits,
+  Set<int> completedHabitIds,
   DailyProgressMetrics progress,
 });
 
@@ -23,10 +24,11 @@ final dashboardStateProvider =
       final normalizedDate = date.dateOnly;
 
       final states = [
-        ref.watch(assemblerMainQuestsForDayProvider(normalizedDate)),
-        ref.watch(assemblerSideQuestsForDayProvider(normalizedDate)),
-        ref.watch(sideQuestsProvider),
-        ref.watch(completedSideQuestIdsForDayProvider(normalizedDate)),
+        ref.watch(scheduledTasksForDayProvider(normalizedDate)),
+        ref.watch(habitOccurrencesForDayProvider(normalizedDate)),
+        ref.watch(placedHabitOccurrencesForDayProvider(normalizedDate)),
+        ref.watch(expectedHabitsForDayProvider(normalizedDate)),
+        ref.watch(completedHabitIdsForDayProvider(normalizedDate)),
         ref.watch(dailyProgressForDayProvider(normalizedDate)),
       ];
 
@@ -39,11 +41,12 @@ final dashboardStateProvider =
       }
 
       return AsyncData((
-        assemblerMainQuests: states[0].requireValue as List<AssemblerMainQuest>,
-        assemblerSideQuests: states[1].requireValue as List<AssemblerSideQuest>,
-        sideQuests: states[2].requireValue as List<SideQuest>,
-        completedSideQuestIds: states[3].requireValue as Set<int>,
-        progress: states[4].requireValue as DailyProgressMetrics,
+        scheduledTasks: states[0].requireValue as List<ScheduledTask>,
+        habitOccurrences: states[1].requireValue as List<HabitOccurrence>,
+        placedHabits: states[2].requireValue as List<HabitOccurrence>,
+        expectedHabits: states[3].requireValue as List<Habit>,
+        completedHabitIds: states[4].requireValue as Set<int>,
+        progress: states[5].requireValue as DailyProgressMetrics,
       ));
     });
 
@@ -66,84 +69,117 @@ class DashboardViewStateNotifier extends Notifier<DashboardViewState> {
     state = (selectedDay: date.dateOnly);
   }
 
-  void checkAssemblerMainQuest(
-    AssemblerMainQuest assemblerMainQuest,
-    bool newValue,
-  ) {
-    final updatedSubTasks = assemblerMainQuest.subTasks
+  /// Toggles completion of a scheduled task. When a one-off task (one with a
+  /// due date) is completed, its library entry is archived automatically and
+  /// returned so the caller can offer an undo.
+  Task? checkScheduledTask(ScheduledTask scheduledTask, bool newValue) {
+    final updatedSubTasks = scheduledTask.subTasks
         .map((subTask) => SubTask(name: subTask.name, completed: newValue))
         .toList();
 
-    final updatedAssemblerMainQuest = assemblerMainQuest.copyWith(
+    final updated = scheduledTask.copyWith(
       subTasks: updatedSubTasks,
       completed: newValue,
       completedAt: newValue ? DateTime.now() : null,
       clearCompletedAt: !newValue,
     );
 
-    IsarDataStore.updateAssemblerMainQuest(
-      assemblerMainQuest.id,
-      updatedAssemblerMainQuest,
-    );
+    IsarDataStore.updateScheduledTask(scheduledTask.id, updated);
+
+    return newValue ? _autoArchive(scheduledTask.taskId) : null;
   }
 
-  void checkSubTask(
-    AssemblerMainQuest assemblerMainQuest,
+  Task? checkSubTask(
+    ScheduledTask scheduledTask,
     SubTask subTask,
     bool newValue,
   ) {
-    final subTaskIndex = assemblerMainQuest.subTasks.indexWhere(
+    final subTaskIndex = scheduledTask.subTasks.indexWhere(
       (st) => st == subTask,
     );
-    if (subTaskIndex == -1) return;
+    if (subTaskIndex == -1) return null;
 
-    final updatedSubTasks = List<SubTask>.from(assemblerMainQuest.subTasks);
+    final updatedSubTasks = List<SubTask>.from(scheduledTask.subTasks);
     updatedSubTasks[subTaskIndex] = SubTask(
       name: subTask.name,
       completed: newValue,
     );
 
-    bool? completed;
-    if (newValue) {
-      if (updatedSubTasks.every((st) => st.completed)) {
-        completed = true;
-      }
-    }
+    final completed =
+        newValue && updatedSubTasks.every((st) => st.completed) ? true : null;
 
-    final updatedAssemblerMainQuest = assemblerMainQuest.copyWith(
+    final updated = scheduledTask.copyWith(
       subTasks: updatedSubTasks,
       completed: completed,
       completedAt: completed == true ? DateTime.now() : null,
     );
 
-    IsarDataStore.updateAssemblerMainQuest(
-      assemblerMainQuest.id,
-      updatedAssemblerMainQuest,
-    );
+    IsarDataStore.updateScheduledTask(scheduledTask.id, updated);
+
+    return completed == true ? _autoArchive(scheduledTask.taskId) : null;
   }
 
-  void checkSideQuest(
-    SideQuest sideQuest,
+  Task? _autoArchive(int taskId) {
+    final task = IsarDataStore.getTask(taskId);
+    if (task == null || !task.oneOff || task.archived) return null;
+    IsarDataStore.archiveTask(task);
+    return task;
+  }
+
+  void undoAutoArchive(Task task) {
+    IsarDataStore.unarchiveTask(task);
+  }
+
+  /// Marks a habit as done (or not) on the selected day. The record is kept
+  /// when it is placed in the planner so the slot is not lost.
+  void checkHabit(
+    Habit habit,
     bool newValue,
-    List<AssemblerSideQuest> assemblerSideQuests,
+    List<HabitOccurrence> dayOccurrences,
   ) {
-    final existingSideQuest = assemblerSideQuests.firstWhereOrNull(
-      (assemblerSideQuest) => assemblerSideQuest.sideQuestId == sideQuest.id,
+    final existing = dayOccurrences.firstWhereOrNull(
+      (occurrence) => occurrence.habitId == habit.id,
     );
 
-    if (existingSideQuest != null && !newValue) {
-      IsarDataStore.deleteAssemblerSideQuest(existingSideQuest);
-      return;
-    }
-
-    if (existingSideQuest == null && newValue) {
-      final assemblerSideQuest = AssemblerSideQuest.from(
-        sideQuest,
-        DateTime.now(),
+    if (existing == null) {
+      if (!newValue) return;
+      IsarDataStore.addHabitOccurrence(
+        HabitOccurrence.from(
+          habit,
+          state.selectedDay,
+          completedAt: DateTime.now(),
+        ),
       );
-
-      IsarDataStore.addAssemblerSideQuest(assemblerSideQuest);
       return;
     }
+
+    if (newValue) {
+      if (existing.completed) return;
+      IsarDataStore.updateHabitOccurrence(
+        existing.id,
+        existing.copyWith(completedAt: DateTime.now()),
+      );
+      return;
+    }
+
+    if (existing.isPlaced) {
+      IsarDataStore.updateHabitOccurrence(
+        existing.id,
+        existing.copyWith(clearCompletedAt: true),
+      );
+    } else {
+      IsarDataStore.deleteHabitOccurrence(existing);
+    }
+  }
+
+  /// Toggles a habit block shown in the plan timeline.
+  void checkHabitOccurrence(HabitOccurrence occurrence, bool newValue) {
+    IsarDataStore.updateHabitOccurrence(
+      occurrence.id,
+      occurrence.copyWith(
+        completedAt: newValue ? DateTime.now() : null,
+        clearCompletedAt: !newValue,
+      ),
+    );
   }
 }

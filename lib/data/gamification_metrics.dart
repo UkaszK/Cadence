@@ -1,9 +1,10 @@
-import 'package:questlog/data/achievement.dart';
-import 'package:questlog/data/achievement_catalog.dart';
-import 'package:questlog/data/assembler_main_quest.dart';
-import 'package:questlog/data/assembler_side_quest.dart';
-import 'package:questlog/data/day.dart';
-import 'package:questlog/data/side_quest.dart';
+import 'package:cadence/data/achievement.dart';
+import 'package:cadence/data/achievement_catalog.dart';
+import 'package:cadence/data/day.dart';
+import 'package:cadence/data/habit.dart';
+import 'package:cadence/data/habit_occurrence.dart';
+import 'package:cadence/data/scheduled_task.dart';
+import 'package:cadence/utils/habit_schedule.dart';
 
 /// One day of the recent activity strip shown next to the streak.
 class StreakDay {
@@ -64,32 +65,30 @@ DateTime _dateOnly(DateTime dateTime) =>
 
 GamificationMetrics computeGamification({
   required DateTime today,
-  required List<AssemblerMainQuest> mainQuests,
-  required List<AssemblerSideQuest> sideQuestCompletions,
-  required List<SideQuest> sideQuests,
+  required List<ScheduledTask> scheduledTasks,
+  required List<HabitOccurrence> habitOccurrences,
+  required List<Habit> habits,
 }) {
   final endDate = _dateOnly(today);
 
-  final mainQuestsByDay = <DateTime, List<AssemblerMainQuest>>{};
-  for (final quest in mainQuests) {
-    mainQuestsByDay
-        .putIfAbsent(_dateOnly(quest.startTime), () => [])
-        .add(quest);
+  final tasksByDay = <DateTime, List<ScheduledTask>>{};
+  for (final task in scheduledTasks) {
+    tasksByDay.putIfAbsent(_dateOnly(task.startTime), () => []).add(task);
   }
 
-  final sideCompletionsByDay = <DateTime, List<AssemblerSideQuest>>{};
-  for (final completion in sideQuestCompletions) {
-    if (!completion.completed) continue;
-    sideCompletionsByDay
-        .putIfAbsent(_dateOnly(completion.occurrenceDate), () => [])
-        .add(completion);
+  final habitCompletionsByDay = <DateTime, List<HabitOccurrence>>{};
+  for (final occurrence in habitOccurrences) {
+    if (!occurrence.completed) continue;
+    habitCompletionsByDay
+        .putIfAbsent(_dateOnly(occurrence.occurrenceDate), () => [])
+        .add(occurrence);
   }
 
   // Walk from the first day with any data up to today. The strip always needs
   // the last 7 days, so never start later than that.
   final knownDays = <DateTime>{
-    ...mainQuestsByDay.keys,
-    ...sideCompletionsByDay.keys,
+    ...tasksByDay.keys,
+    ...habitCompletionsByDay.keys,
   };
   final stripStart = endDate.subtract(const Duration(days: 6));
   var startDate = stripStart;
@@ -108,32 +107,30 @@ GamificationMetrics computeGamification({
   for (var i = 0; i < totalDays; i++) {
     final date = startDate.add(Duration(days: i));
     final weekday = Day.fromDateTime(date);
-    final dayMainQuests = mainQuestsByDay[date] ?? const [];
-    final dayCompletions = sideCompletionsByDay[date] ?? const [];
+    final dayTasks = tasksByDay[date] ?? const [];
+    final dayCompletions = habitCompletionsByDay[date] ?? const [];
 
     var dayDone = 0;
     var dayPlanned = 0;
 
-    for (final quest in dayMainQuests) {
+    for (final task in dayTasks) {
       dayPlanned++;
-      if (quest.completed) dayDone++;
+      if (task.completed) dayDone++;
     }
 
-    final completedSideQuestIds = dayCompletions
-        .map((c) => c.sideQuestId)
-        .toSet();
-    final scheduledIds = <int>{};
+    final completedHabitIds = dayCompletions.map((c) => c.habitId).toSet();
+    final expectedIds = <int>{};
 
-    for (final sideQuest in sideQuests) {
-      if (!sideQuest.repeatDays.contains(weekday)) continue;
-      scheduledIds.add(sideQuest.id);
+    for (final habit in habits) {
+      if (!isHabitExpectedOn(habit, date)) continue;
+      expectedIds.add(habit.id);
       dayPlanned++;
-      if (completedSideQuestIds.contains(sideQuest.id)) dayDone++;
+      if (completedHabitIds.contains(habit.id)) dayDone++;
     }
 
-    // Completions for habits not scheduled that day still count as work done.
+    // Completions for habits not expected that day still count as work done.
     for (final completion in dayCompletions) {
-      if (scheduledIds.contains(completion.sideQuestId)) continue;
+      if (expectedIds.contains(completion.habitId)) continue;
       dayDone++;
       dayPlanned++;
     }
@@ -152,24 +149,24 @@ GamificationMetrics computeGamification({
 
   final (currentStreak, bestStreak) = _computeStreaks(activeDays, endDate);
 
-  var mainQuestsCompleted = 0;
+  var tasksCompleted = 0;
   var focusMinutes = 0;
   var earlyBird = 0;
   var nightOwl = 0;
 
-  for (final quest in mainQuests) {
-    if (!quest.completed) continue;
-    mainQuestsCompleted++;
-    focusMinutes += quest.durationInMinutes;
-    _countTimeOfDay(quest.completedAt, () => earlyBird++, () => nightOwl++);
+  for (final task in scheduledTasks) {
+    if (!task.completed) continue;
+    tasksCompleted++;
+    focusMinutes += task.durationInMinutes;
+    _countTimeOfDay(task.completedAt, () => earlyBird++, () => nightOwl++);
   }
 
-  var sideQuestsCompleted = 0;
-  for (final completion in sideQuestCompletions) {
-    if (!completion.completed) continue;
-    sideQuestsCompleted++;
+  var habitsCompleted = 0;
+  for (final occurrence in habitOccurrences) {
+    if (!occurrence.completed) continue;
+    habitsCompleted++;
     _countTimeOfDay(
-      completion.completedAt,
+      occurrence.completedAt,
       () => earlyBird++,
       () => nightOwl++,
     );
@@ -182,8 +179,8 @@ GamificationMetrics computeGamification({
     AchievementId.focusMaster: focusMasterDays,
     AchievementId.perfectDay: perfectDays,
     AchievementId.deepWork: focusMinutes,
-    AchievementId.questSlayer: mainQuestsCompleted,
-    AchievementId.habitHero: sideQuestsCompleted,
+    AchievementId.taskFinisher: tasksCompleted,
+    AchievementId.habitHero: habitsCompleted,
     AchievementId.weekendWarrior: weekendCompletions,
   };
 

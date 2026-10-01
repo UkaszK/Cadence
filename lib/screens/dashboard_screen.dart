@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:questlog/providers/dashboard_providers.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/dashboard_screen/daily_progress/dashboard_daily_progress.dart';
-import 'package:questlog/widgets/dashboard_screen/scheduled_main_quests/assembler_main_quests.dart';
-import 'package:questlog/widgets/dashboard_screen/side_quests/side_quests.dart';
-import 'package:questlog/widgets/quest_log_loading_screen.dart';
-import 'package:questlog/widgets/reusables/quest_log_screen_container.dart';
+import 'package:cadence/data/task.dart';
+import 'package:cadence/providers/dashboard_providers.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/dashboard_screen/daily_progress/dashboard_daily_progress.dart';
+import 'package:cadence/widgets/dashboard_screen/habits/dashboard_habits.dart';
+import 'package:cadence/widgets/dashboard_screen/plan/dashboard_plan.dart';
+import 'package:cadence/widgets/cadence_loading_screen.dart';
+import 'package:cadence/widgets/reusables/cadence_screen_container.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -27,7 +28,7 @@ class DashboardScreen extends ConsumerWidget {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.dark(
-              primary: QuestLogColors.accent,
+              primary: CadenceColors.accent,
               onPrimary: Colors.black,
               surface: Colors.black,
               onSurface: Colors.white,
@@ -43,6 +44,25 @@ class DashboardScreen extends ConsumerWidget {
     }
   }
 
+  void _showAutoArchiveSnackBar(
+    BuildContext context,
+    Task task,
+    void Function(Task) onUndo,
+  ) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text("'${task.name}' completed and moved to archive"),
+          action: SnackBarAction(
+            label: 'Undo',
+            textColor: CadenceColors.accent,
+            onPressed: () => onUndo(task),
+          ),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(dashboardViewStateNotifierProvider.notifier);
@@ -52,7 +72,7 @@ class DashboardScreen extends ConsumerWidget {
 
     return dashboardStateAsync.when(
       data: (state) {
-        return QuestLogScreenContainer(
+        return CadenceScreenContainer(
           spacing: 25,
           children: [
             _Header(
@@ -65,27 +85,51 @@ class DashboardScreen extends ConsumerWidget {
 
             DashboardDailyProgress(progress: state.progress),
 
-            AssemblerMainQuests(
-              assemblerMainQuests: state.assemblerMainQuests,
-              onCheckAssemblerMainQuest: notifier.checkAssemblerMainQuest,
-              onCheckSubTask: notifier.checkSubTask,
+            DashboardPlan(
+              scheduledTasks: state.scheduledTasks,
+              placedHabits: state.placedHabits,
+              onCheckScheduledTask: (scheduledTask, newValue) {
+                final archived = notifier.checkScheduledTask(
+                  scheduledTask,
+                  newValue,
+                );
+                if (archived != null) {
+                  _showAutoArchiveSnackBar(
+                    context,
+                    archived,
+                    notifier.undoAutoArchive,
+                  );
+                }
+              },
+              onCheckSubTask: (scheduledTask, subTask, newValue) {
+                final archived = notifier.checkSubTask(
+                  scheduledTask,
+                  subTask,
+                  newValue,
+                );
+                if (archived != null) {
+                  _showAutoArchiveSnackBar(
+                    context,
+                    archived,
+                    notifier.undoAutoArchive,
+                  );
+                }
+              },
+              onCheckHabitOccurrence: notifier.checkHabitOccurrence,
             ),
 
-            SideQuests(
-              sideQuests: state.sideQuests,
-              completedSideQuestIds: state.completedSideQuestIds,
-              onCheckSideQuest: (sideQuest, newValue) =>
-                  notifier.checkSideQuest(
-                    sideQuest,
-                    newValue,
-                    state.assemblerSideQuests,
-                  ),
+            DashboardHabits(
+              expectedHabits: state.expectedHabits,
+              completedHabitIds: state.completedHabitIds,
+              dayOccurrences: state.habitOccurrences,
+              onCheckHabit: (habit, newValue) =>
+                  notifier.checkHabit(habit, newValue, state.habitOccurrences),
             ),
           ],
         );
       },
       error: (error, stack) => Center(child: Text('Error loading: $error')),
-      loading: () => QuestLogLoadingScreen(),
+      loading: () => CadenceLoadingScreen(),
     );
   }
 }
@@ -118,7 +162,7 @@ class _Header extends StatelessWidget {
               Text(
                 'DASHBOARD',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textPrimary,
+                  color: CadenceColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                 ),
@@ -127,7 +171,7 @@ class _Header extends StatelessWidget {
               Text(
                 'DAILY OVERVIEW',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textSecondary,
+                  color: CadenceColors.textSecondary,
                   fontSize: 10,
                 ),
               ),
@@ -143,7 +187,7 @@ class _Header extends StatelessWidget {
               child: Text(
                 _dayFormat.format(selectedDay).toUpperCase(),
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textSecondary,
+                  color: CadenceColors.textSecondary,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -174,9 +218,9 @@ class _DayNavButton extends StatelessWidget {
         height: 20,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          border: Border.all(color: QuestLogColors.border, width: 1),
+          border: Border.all(color: CadenceColors.border, width: 1),
         ),
-        child: Icon(icon, size: 14, color: QuestLogColors.textSecondary),
+        child: Icon(icon, size: 14, color: CadenceColors.textSecondary),
       ),
     );
   }

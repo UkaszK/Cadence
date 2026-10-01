@@ -1,15 +1,15 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 class AnalyticsBar {
   const AnalyticsBar({
     required this.value,
     required this.tooltip,
     this.label = '',
-    this.color = QuestLogColors.accent,
+    this.color = CadenceColors.accent,
   });
 
   /// Bar height in 0..1 (percentage).
@@ -21,7 +21,7 @@ class AnalyticsBar {
   final Color color;
 }
 
-/// Percentage bar chart in the QuestLog style (0-100 on the Y axis).
+/// Percentage bar chart in the Cadence style (0-100 on the Y axis).
 class AnalyticsBarChart extends StatelessWidget {
   const AnalyticsBarChart({
     super.key,
@@ -59,7 +59,7 @@ class AnalyticsBarChart extends StatelessWidget {
             drawVerticalLine: false,
             horizontalInterval: 25,
             getDrawingHorizontalLine: (value) => const FlLine(
-              color: QuestLogColors.border,
+              color: CadenceColors.border,
               strokeWidth: 1,
               dashArray: [3, 4],
             ),
@@ -110,7 +110,7 @@ class AnalyticsBarChart extends StatelessWidget {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) => QuestLogColors.surfaceOnSurface,
+              getTooltipColor: (_) => CadenceColors.surfaceOnSurface,
               tooltipBorderRadius: BorderRadius.zero,
               tooltipPadding: const EdgeInsets.symmetric(
                 horizontal: 8,
@@ -122,7 +122,7 @@ class AnalyticsBarChart extends StatelessWidget {
                 return BarTooltipItem(
                   bars[group.x].tooltip,
                   GoogleFonts.jetBrainsMono(
-                    color: QuestLogColors.textPrimary,
+                    color: CadenceColors.textPrimary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -143,7 +143,7 @@ class AnalyticsBarChart extends StatelessWidget {
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: 100,
-                      color: QuestLogColors.border.withValues(alpha: 0.35),
+                      color: CadenceColors.border.withValues(alpha: 0.35),
                     ),
                   ),
                 ],

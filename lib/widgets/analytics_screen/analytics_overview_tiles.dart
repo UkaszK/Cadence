@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/analytics_metrics.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/utils/get_duration_hours_and_minutes.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/analytics_metrics.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/get_duration_hours_and_minutes.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 class AnalyticsOverviewTiles extends StatelessWidget {
   const AnalyticsOverviewTiles({super.key, required this.metrics});
@@ -20,7 +20,7 @@ class AnalyticsOverviewTiles extends StatelessWidget {
   Widget build(BuildContext context) {
     final rateColor = metrics.hasData
         ? analyticsRateColor(metrics.completionRate)
-        : QuestLogColors.textSecondary;
+        : CadenceColors.textSecondary;
 
     return Column(
       spacing: 12,
@@ -40,7 +40,7 @@ class AnalyticsOverviewTiles extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.check_circle_outline,
-                label: 'OBJECTIVES DONE',
+                label: 'ITEMS DONE',
                 value: '${metrics.objectivesDone}',
                 subtitle: 'LAST ${metrics.range.days} DAYS',
               ),
@@ -55,7 +55,7 @@ class AnalyticsOverviewTiles extends StatelessWidget {
                 icon: Icons.timer_outlined,
                 label: 'FOCUS TIME',
                 value: _focusTimeText(),
-                subtitle: 'COMPLETED MAIN QUESTS',
+                subtitle: 'TASKS COMPLETED',
               ),
             ),
             Expanded(
@@ -64,8 +64,8 @@ class AnalyticsOverviewTiles extends StatelessWidget {
                 label: 'STREAK',
                 value: '${metrics.currentStreak}D',
                 valueColor: metrics.currentStreak > 0
-                    ? QuestLogColors.otherAccent
-                    : QuestLogColors.textSecondary,
+                    ? CadenceColors.otherAccent
+                    : CadenceColors.textSecondary,
                 subtitle: 'BEST ${metrics.bestStreak}D',
               ),
             ),
@@ -82,7 +82,7 @@ class _StatTile extends StatelessWidget {
     required this.label,
     required this.value,
     required this.subtitle,
-    this.valueColor = QuestLogColors.accent,
+    this.valueColor = CadenceColors.accent,
   });
 
   final IconData icon;
@@ -100,7 +100,7 @@ class _StatTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: QuestLogColors.textSecondary),
+              Icon(icon, size: 14, color: CadenceColors.textSecondary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -131,7 +131,7 @@ class _StatTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.jetBrainsMono(
-              color: QuestLogColors.textSecondary,
+              color: CadenceColors.textSecondary,
               fontSize: 9,
             ),
           ),

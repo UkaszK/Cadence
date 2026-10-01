@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/achievement.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/achievement.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 /// Grid tile showing a single achievement track and its progress.
 class AchievementBadgeTile extends StatelessWidget {
@@ -26,9 +26,9 @@ class AchievementBadgeTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: QuestLogColors.surface,
+          color: CadenceColors.surface,
           border: Border.all(
-            color: locked ? QuestLogColors.border : color,
+            color: locked ? CadenceColors.border : color,
             width: 1,
           ),
         ),
@@ -40,7 +40,7 @@ class AchievementBadgeTile extends StatelessWidget {
                 Icon(
                   achievement.definition.icon,
                   size: 18,
-                  color: locked ? QuestLogColors.border : color,
+                  color: locked ? CadenceColors.border : color,
                 ),
                 const Spacer(),
                 AchievementTierDots(achievement: achievement),
@@ -55,8 +55,8 @@ class AchievementBadgeTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.jetBrainsMono(
                 color: locked
-                    ? QuestLogColors.textSecondary
-                    : QuestLogColors.textPrimary,
+                    ? CadenceColors.textSecondary
+                    : CadenceColors.textPrimary,
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
               ),
@@ -67,7 +67,7 @@ class AchievementBadgeTile extends StatelessWidget {
             Text(
               locked ? 'LOCKED' : tier.label,
               style: analyticsCaptionStyle(
-                color: locked ? QuestLogColors.textSecondary : color,
+                color: locked ? CadenceColors.textSecondary : color,
               ),
             ),
 
@@ -76,9 +76,9 @@ class AchievementBadgeTile extends StatelessWidget {
             LinearProgressIndicator(
               value: achievement.progress,
               valueColor: AlwaysStoppedAnimation<Color>(
-                locked ? QuestLogColors.textSecondary : color,
+                locked ? CadenceColors.textSecondary : color,
               ),
-              backgroundColor: QuestLogColors.border,
+              backgroundColor: CadenceColors.border,
               minHeight: 4,
               borderRadius: const BorderRadius.all(Radius.circular(4)),
             ),
@@ -114,7 +114,7 @@ class AchievementTierDots extends StatelessWidget {
               shape: BoxShape.circle,
               color: earned.contains(tier)
                   ? tier.color
-                  : QuestLogColors.border,
+                  : CadenceColors.border,
             ),
           ),
       ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:questlog/screens/main_home_screen.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
+import 'package:cadence/screens/main_home_screen.dart';
+import 'package:cadence/theme/cadence_colors.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -9,7 +9,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: QuestLogColors.background,
+        scaffoldBackgroundColor: CadenceColors.background,
       ),
       home: const MainHomeScreen(),
     );

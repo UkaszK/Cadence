@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/daily_progress_metrics.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
+import 'package:cadence/data/daily_progress_metrics.dart';
+import 'package:cadence/theme/cadence_colors.dart';
 
 class DashboardDailyProgress extends StatelessWidget {
   const DashboardDailyProgress({super.key, required this.progress});
@@ -13,8 +13,8 @@ class DashboardDailyProgress extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: QuestLogColors.border, width: 1),
-        color: QuestLogColors.surface,
+        border: Border.all(color: CadenceColors.border, width: 1),
+        color: CadenceColors.surface,
       ),
       child: Column(
         children: [
@@ -22,9 +22,9 @@ class DashboardDailyProgress extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'DAILY OBJECTIVES PROGRESS',
+                'DAILY PROGRESS',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textPrimary,
+                  color: CadenceColors.textPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -33,7 +33,7 @@ class DashboardDailyProgress extends StatelessWidget {
               Text(
                 '${progress.progressPercent}%',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.accent,
+                  color: CadenceColors.accent,
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
                 ),
@@ -46,9 +46,9 @@ class DashboardDailyProgress extends StatelessWidget {
           LinearProgressIndicator(
             value: progress.progress,
             valueColor: const AlwaysStoppedAnimation<Color>(
-              QuestLogColors.accent,
+              CadenceColors.accent,
             ),
-            backgroundColor: QuestLogColors.border,
+            backgroundColor: CadenceColors.border,
             minHeight: 5,
             borderRadius: BorderRadiusGeometry.all(Radius.circular(5)),
           ),
@@ -59,9 +59,9 @@ class DashboardDailyProgress extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${progress.tasksDone} OF ${progress.tasksPlanned} PLANNED OBJECTIVES COMPLETED',
+                '${progress.tasksDone} OF ${progress.tasksPlanned} PLANNED ITEMS COMPLETED',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textSecondary,
+                  color: CadenceColors.textSecondary,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),

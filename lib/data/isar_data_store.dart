@@ -1,10 +1,10 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:questlog/data/achievement_unlock.dart';
-import 'package:questlog/data/assembler_main_quest.dart';
-import 'package:questlog/data/assembler_side_quest.dart';
-import 'package:questlog/data/main_quest.dart';
-import 'package:questlog/data/side_quest.dart';
+import 'package:cadence/data/achievement_unlock.dart';
+import 'package:cadence/data/habit.dart';
+import 'package:cadence/data/habit_occurrence.dart';
+import 'package:cadence/data/scheduled_task.dart';
+import 'package:cadence/data/task.dart';
 
 class IsarDataStore {
   IsarDataStore._();
@@ -14,117 +14,115 @@ class IsarDataStore {
   static Future<void> init() async {
     final dir = await getApplicationDocumentsDirectory();
     instance = await Isar.open([
-      MainQuestSchema,
-      SideQuestSchema,
-      AssemblerMainQuestSchema,
-      AssemblerSideQuestSchema,
+      TaskSchema,
+      HabitSchema,
+      ScheduledTaskSchema,
+      HabitOccurrenceSchema,
       AchievementUnlockSchema,
     ], directory: dir.path);
   }
 
-  // MainQuest
-  static List<MainQuest> getAllMainQuestsIncludingArchived() =>
-      instance.mainQuests.where().findAllSync();
+  // Task
+  static List<Task> getAllTasksIncludingArchived() =>
+      instance.tasks.where().findAllSync();
 
-  static Stream<List<MainQuest>> watchAllMainQuests() => instance.mainQuests
+  static Task? getTask(int id) => instance.tasks.getSync(id);
+
+  static Stream<List<Task>> watchAllTasks() =>
+      instance.tasks.filter().archivedEqualTo(false).watch(fireImmediately: true);
+
+  static Stream<List<Task>> watchAllTasksIncludingArchived() =>
+      instance.tasks.where().watch(fireImmediately: true);
+
+  static void addTask(Task task) {
+    instance.writeTxnSync(() => instance.tasks.putSync(task));
+  }
+
+  static void archiveTask(Task task) => _setTaskArchived(task, true);
+
+  static void unarchiveTask(Task task) => _setTaskArchived(task, false);
+
+  static void _setTaskArchived(Task task, bool archived) {
+    final updated = task.copyWith(archived: archived);
+    instance.writeTxnSync(() => instance.tasks.putSync(updated));
+  }
+
+  static void updateTask(int id, Task task) {
+    task.id = id;
+    instance.writeTxnSync(() => instance.tasks.putSync(task));
+  }
+
+  // Habit
+  static List<Habit> getAllHabitsIncludingArchived() =>
+      instance.habits.where().findAllSync();
+
+  static Stream<List<Habit>> watchAllHabits() => instance.habits
       .filter()
       .archivedEqualTo(false)
       .watch(fireImmediately: true);
 
-  static void addMainQuest(MainQuest mainQuest) {
-    instance.writeTxnSync(() => instance.mainQuests.putSync(mainQuest));
+  static Stream<List<Habit>> watchAllHabitsIncludingArchived() =>
+      instance.habits.where().watch(fireImmediately: true);
+
+  static void addHabit(Habit habit) {
+    instance.writeTxnSync(() => instance.habits.putSync(habit));
   }
 
-  static void archiveMainQuest(MainQuest mainQuest) {
-    final archivedMainQuest = mainQuest.copyWith(archived: true)
-      ..id = mainQuest.id;
-    instance.writeTxnSync(() => instance.mainQuests.putSync(archivedMainQuest));
+  static void archiveHabit(Habit habit) => _setHabitArchived(habit, true);
+
+  static void unarchiveHabit(Habit habit) => _setHabitArchived(habit, false);
+
+  static void _setHabitArchived(Habit habit, bool archived) {
+    final updated = habit.copyWith(archived: archived);
+    instance.writeTxnSync(() => instance.habits.putSync(updated));
   }
 
-  static void updateMainQuest(int id, MainQuest mainQuest) {
-    mainQuest.id = id;
-    instance.writeTxnSync(() => instance.mainQuests.putSync(mainQuest));
+  static void updateHabit(int id, Habit habit) {
+    habit.id = id;
+    instance.writeTxnSync(() => instance.habits.putSync(habit));
   }
 
-  // SideQuest
-  static List<SideQuest> getAllSideQuestsIncludingArchived() =>
-      instance.sideQuests.where().findAllSync();
+  // ScheduledTask
+  static List<ScheduledTask> getAllScheduledTasks() =>
+      instance.scheduledTasks.where().findAllSync();
 
-  static Stream<List<SideQuest>> watchAllSideQuests() => instance.sideQuests
-      .filter()
-      .archivedEqualTo(false)
-      .watch(fireImmediately: true);
+  static Stream<List<ScheduledTask>> watchAllScheduledTasks() =>
+      instance.scheduledTasks.where().watch(fireImmediately: true);
 
-  static void addSideQuest(SideQuest sideQuest) {
-    instance.writeTxnSync(() => instance.sideQuests.putSync(sideQuest));
+  static void addScheduledTask(ScheduledTask scheduledTask) {
+    instance.writeTxnSync(() => instance.scheduledTasks.putSync(scheduledTask));
   }
 
-  static void archiveSideQuest(SideQuest sideQuest) {
-    final archivedSideQuest = sideQuest.copyWith(archived: true)
-      ..id = sideQuest.id;
-    instance.writeTxnSync(() => instance.sideQuests.putSync(archivedSideQuest));
+  static void updateScheduledTask(int id, ScheduledTask scheduledTask) {
+    scheduledTask.id = id;
+    instance.writeTxnSync(() => instance.scheduledTasks.putSync(scheduledTask));
   }
 
-  static void updateSideQuest(int id, SideQuest sideQuest) {
-    sideQuest.id = id;
-    instance.writeTxnSync(() => instance.sideQuests.putSync(sideQuest));
-  }
-
-  // AssemblerMainQuest
-  static List<AssemblerMainQuest> getAllAssemblerQuests() =>
-      instance.assemblerMainQuests.where().findAllSync();
-
-  static Stream<List<AssemblerMainQuest>> watchAllAssemblerMainQuests() =>
-      instance.assemblerMainQuests.where().watch(fireImmediately: true);
-
-  static void addAssemblerMainQuest(AssemblerMainQuest assemblerQuest) {
+  static void deleteScheduledTask(ScheduledTask scheduledTask) {
     instance.writeTxnSync(
-      () => instance.assemblerMainQuests.putSync(assemblerQuest),
+      () => instance.scheduledTasks.deleteSync(scheduledTask.id),
     );
   }
 
-  static void updateAssemblerMainQuest(
-    int id,
-    AssemblerMainQuest assemblerQuest,
-  ) {
-    assemblerQuest.id = id;
-    instance.writeTxnSync(
-      () => instance.assemblerMainQuests.putSync(assemblerQuest),
-    );
+  // HabitOccurrence
+  static List<HabitOccurrence> getAllHabitOccurrences() =>
+      instance.habitOccurrences.where().findAllSync();
+
+  static Stream<List<HabitOccurrence>> watchAllHabitOccurrences() =>
+      instance.habitOccurrences.where().watch(fireImmediately: true);
+
+  static void addHabitOccurrence(HabitOccurrence occurrence) {
+    instance.writeTxnSync(() => instance.habitOccurrences.putSync(occurrence));
   }
 
-  static void deleteAssemblerMainQuest(AssemblerMainQuest assemblerQuest) {
-    instance.writeTxnSync(
-      () => instance.assemblerMainQuests.deleteSync(assemblerQuest.id),
-    );
+  static void updateHabitOccurrence(int id, HabitOccurrence occurrence) {
+    occurrence.id = id;
+    instance.writeTxnSync(() => instance.habitOccurrences.putSync(occurrence));
   }
 
-  // AssemblerSideQuest
-  static List<AssemblerSideQuest> getAllAssemblerSideQuests() =>
-      instance.assemblerSideQuests.where().findAllSync();
-
-  static Stream<List<AssemblerSideQuest>> watchAllAssemblerSideQuests() =>
-      instance.assemblerSideQuests.where().watch(fireImmediately: true);
-
-  static void addAssemblerSideQuest(AssemblerSideQuest assemblerSideQuest) {
+  static void deleteHabitOccurrence(HabitOccurrence occurrence) {
     instance.writeTxnSync(
-      () => instance.assemblerSideQuests.putSync(assemblerSideQuest),
-    );
-  }
-
-  static void updateAssemblerSideQuest(
-    int id,
-    AssemblerSideQuest assemblerSideQuest,
-  ) {
-    assemblerSideQuest.id = id;
-    instance.writeTxnSync(
-      () => instance.assemblerSideQuests.putSync(assemblerSideQuest),
-    );
-  }
-
-  static void deleteAssemblerSideQuest(AssemblerSideQuest assemblerSideQuest) {
-    instance.writeTxnSync(
-      () => instance.assemblerSideQuests.deleteSync(assemblerSideQuest.id),
+      () => instance.habitOccurrences.deleteSync(occurrence.id),
     );
   }
 

@@ -1,8 +1,8 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/reusables/quest_log_section_header.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/reusables/cadence_section_header.dart';
 
 /// Bordered surface card used by all analytics sections.
 class AnalyticsCard extends StatelessWidget {
@@ -21,8 +21,8 @@ class AnalyticsCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        border: Border.all(color: QuestLogColors.border, width: 1),
-        color: QuestLogColors.surface,
+        border: Border.all(color: CadenceColors.border, width: 1),
+        color: CadenceColors.surface,
       ),
       child: child,
     );
@@ -53,10 +53,10 @@ class AnalyticsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        QuestLogSectionHeader(
+        CadenceSectionHeader(
           title: title,
           icon: icon,
-          iconColor: QuestLogColors.accent,
+          iconColor: CadenceColors.accent,
           rightSide: rightSide,
         ),
 
@@ -64,11 +64,11 @@ class AnalyticsSection extends StatelessWidget {
 
         if (isEmpty)
           Container(
-            color: QuestLogColors.surface,
+            color: CadenceColors.surface,
             child: DottedBorder(
               options: RectDottedBorderOptions(
                 strokeWidth: 1,
-                color: QuestLogColors.border,
+                color: CadenceColors.border,
               ),
               child: Container(
                 width: double.infinity,
@@ -77,7 +77,7 @@ class AnalyticsSection extends StatelessWidget {
                 child: Text(
                   emptyLabel,
                   style: GoogleFonts.jetBrainsMono(
-                    color: QuestLogColors.textSecondary,
+                    color: CadenceColors.textSecondary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -93,7 +93,7 @@ class AnalyticsSection extends StatelessWidget {
 }
 
 /// Small caption used for axis labels and secondary info.
-TextStyle analyticsCaptionStyle({Color color = QuestLogColors.textSecondary}) {
+TextStyle analyticsCaptionStyle({Color color = CadenceColors.textSecondary}) {
   return GoogleFonts.jetBrainsMono(
     color: color,
     fontSize: 10,
@@ -103,9 +103,9 @@ TextStyle analyticsCaptionStyle({Color color = QuestLogColors.textSecondary}) {
 
 /// Color scale for completion rates.
 Color analyticsRateColor(double rate) {
-  if (rate >= 0.8) return QuestLogColors.success;
-  if (rate >= 0.5) return QuestLogColors.accent;
-  return QuestLogColors.warning;
+  if (rate >= 0.8) return CadenceColors.success;
+  if (rate >= 0.5) return CadenceColors.accent;
+  return CadenceColors.warning;
 }
 
 /// Label + horizontal bar + trailing text; used by list-style sections.
@@ -116,7 +116,7 @@ class AnalyticsBarRow extends StatelessWidget {
     required this.value,
     required this.trailing,
     this.leading,
-    this.color = QuestLogColors.accent,
+    this.color = CadenceColors.accent,
     this.subLabel,
   });
 
@@ -146,7 +146,7 @@ class AnalyticsBarRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.jetBrainsMono(
-                        color: QuestLogColors.textPrimary,
+                        color: CadenceColors.textPrimary,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -162,7 +162,7 @@ class AnalyticsBarRow extends StatelessWidget {
               LinearProgressIndicator(
                 value: value.clamp(0.0, 1.0),
                 valueColor: AlwaysStoppedAnimation<Color>(color),
-                backgroundColor: QuestLogColors.border,
+                backgroundColor: CadenceColors.border,
                 minHeight: 5,
                 borderRadius: const BorderRadius.all(Radius.circular(5)),
               ),

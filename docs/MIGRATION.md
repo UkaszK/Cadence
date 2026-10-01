@@ -100,7 +100,7 @@ Removed: `QuestType`. `QuestFilterOption` is reduced to priority / due filters.
 - Habits tab: grouped by category; subtitle shows rule text ("Every day", "Mon, Wed, Fri", "Every 3 days").
 - FAB opens the form matching the active tab.
 
-### Task form (ex Quest form, main branch)
+### Task form (ex Quest form)
 
 - Name, category, priority, duration, due date (optional), subtasks.
 - Helper text under due date: *"Tasks with a due date are archived automatically once completed."*
