@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,8 +43,7 @@ class PlannerScreen extends ConsumerWidget {
         ) ||
         placedHabits.any(
           (h) =>
-              h.id != editingOccurrenceId &&
-              overlaps(h.startTime!, h.endTime!),
+              h.id != editingOccurrenceId && overlaps(h.startTime!, h.endTime!),
         );
   }
 
@@ -62,8 +62,7 @@ class PlannerScreen extends ConsumerWidget {
     final EditingPlannerItem? editingItem = viewState.editingItem;
     final PendingPlannerItem? pendingItem = viewState.pendingItem;
     final bool hasTimeSlot = selectedTimeSlot != null;
-    final String pendingItemName =
-        pendingItem?.name ?? editingItem?.name ?? '';
+    final String pendingItemName = pendingItem?.name ?? editingItem?.name ?? '';
 
     Future<void> editTaskDetails(ScheduledTask scheduledTask) async {
       final details = await showEditScheduledTaskSheet(context, scheduledTask);
@@ -99,38 +98,44 @@ class PlannerScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DayPicker(
-                          selectedDay: selectedDay,
-                          onDaySelected: notifier.updateSelectedDay,
+                        FadeInTransition(
+                          delay: Duration.zero,
+                          child: DayPicker(
+                            selectedDay: selectedDay,
+                            onDaySelected: notifier.updateSelectedDay,
+                          ),
                         ),
-                        _PlannerTitle(
-                          rightSide: Text(
-                            selectedDay.toDDMMYYYY('-'),
-                            style: GoogleFonts.jetBrainsMono(
-                              color: CadenceColors.accent,
-                              fontSize: 10,
+                        FadeInTransition(
+                          delay: const Duration(milliseconds: 100),
+                          child: _PlannerTitle(
+                            rightSide: Text(
+                              selectedDay.toDDMMYYYY('-'),
+                              style: GoogleFonts.jetBrainsMono(
+                                color: CadenceColors.accent,
+                                fontSize: 10,
+                              ),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 10),
-
                         const Divider(height: 1),
-
-                        Planner(
-                          baseDate: baseDate,
-                          scheduledTasks: state.scheduledTasks,
-                          placedHabits: state.placedHabits,
-                          displayInsertBlocks: !hasTimeSlot,
-                          hasOverlap: hasOverlap,
-                          selectedTimeSlot: selectedTimeSlot,
-                          editingItem: editingItem,
-                          onSelectTimeSlot: notifier.updateSelectedTimeSlot,
-                          onUpdateTimeSlot: notifier.updateSelectedTimeSlot,
-                          onSelectExistingTask:
-                              notifier.handleSelectExistingScheduledTask,
-                          onSelectExistingHabit:
-                              notifier.handleSelectExistingHabitOccurrence,
+                        FadeInTransition(
+                          delay: const Duration(milliseconds: 150),
+                          child: Planner(
+                            baseDate: baseDate,
+                            scheduledTasks: state.scheduledTasks,
+                            placedHabits: state.placedHabits,
+                            displayInsertBlocks: !hasTimeSlot,
+                            hasOverlap: hasOverlap,
+                            selectedTimeSlot: selectedTimeSlot,
+                            editingItem: editingItem,
+                            onSelectTimeSlot: notifier.updateSelectedTimeSlot,
+                            onUpdateTimeSlot: notifier.updateSelectedTimeSlot,
+                            onSelectExistingTask:
+                                notifier.handleSelectExistingScheduledTask,
+                            onSelectExistingHabit:
+                                notifier.handleSelectExistingHabitOccurrence,
+                          ),
                         ),
                       ],
                     ),

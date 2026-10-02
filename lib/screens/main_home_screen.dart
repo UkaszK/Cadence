@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cadence/providers/navigation_bar_providers.dart';
@@ -31,7 +32,17 @@ class MainHomeScreen extends ConsumerWidget {
       appBar: CadenceAppBar(),
       body: AchievementUnlockListener(
         child: StreakUpListener(
-          child: IndexedStack(index: currentIndex, children: _pages),
+          child: AnimatedSwitcher(
+            duration: AnimationDurations.fast,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: IndexedStack(
+              key: ValueKey(currentIndex),
+              index: currentIndex,
+              children: _pages,
+            ),
+          ),
         ),
       ),
       bottomNavigationBar: CadenceNavigationBar(

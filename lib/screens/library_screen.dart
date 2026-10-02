@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,64 +41,73 @@ class LibraryScreen extends ConsumerWidget {
         return CadenceScreenContainer(
           spacing: 20,
           children: [
-            _Header(
-              subtitle: switch (tab) {
-                LibraryTab.tasks => '$count TASKS IN LIBRARY',
-                LibraryTab.habits => '$count HABITS IN LIBRARY',
-              },
-              rightSide: tab == LibraryTab.tasks
-                  ? CadenceDropdown(
-                      options: TaskFilterOption.values,
-                      selection: filterState.filter,
-                      onChange: filterNotifier.setFilter,
-                      labelOf: (filter) => filter.label,
-                      primaryColorOf: (filter) => filter.color,
-                    )
-                  : const SizedBox.shrink(),
+            FadeInTransition(
+              delay: Duration.zero,
+              child: _Header(
+                subtitle: switch (tab) {
+                  LibraryTab.tasks => '$count TASKS IN LIBRARY',
+                  LibraryTab.habits => '$count HABITS IN LIBRARY',
+                },
+                rightSide: tab == LibraryTab.tasks
+                    ? CadenceDropdown(
+                        options: TaskFilterOption.values,
+                        selection: filterState.filter,
+                        onChange: filterNotifier.setFilter,
+                        labelOf: (filter) => filter.label,
+                        primaryColorOf: (filter) => filter.color,
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ),
-
-            CadenceSwitch<LibraryTab>(
-              options: LibraryTab.values,
-              selection: tab,
-              labelOf: (t) => switch (t) {
-                LibraryTab.tasks => 'TASKS',
-                LibraryTab.habits => 'HABITS',
-              },
-              primaryColorOf: (t) => switch (t) {
-                LibraryTab.tasks => CadenceColors.accent,
-                LibraryTab.habits => CadenceColors.otherAccent,
-              },
-              onChange: ref.read(libraryTabProvider.notifier).select,
+            FadeInTransition(
+              delay: const Duration(milliseconds: 100),
+              child: CadenceSwitch<LibraryTab>(
+                options: LibraryTab.values,
+                selection: tab,
+                labelOf: (t) => switch (t) {
+                  LibraryTab.tasks => 'TASKS',
+                  LibraryTab.habits => 'HABITS',
+                },
+                primaryColorOf: (t) => switch (t) {
+                  LibraryTab.tasks => CadenceColors.accent,
+                  LibraryTab.habits => CadenceColors.otherAccent,
+                },
+                onChange: ref.read(libraryTabProvider.notifier).select,
+              ),
             ),
-
-            Row(
-              mainAxisAlignment: .end,
-              children: [
-                Text(
-                  'SHOW ARCHIVED',
-                  style: GoogleFonts.jetBrainsMono(
-                    color: CadenceColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: .bold,
+            FadeInTransition(
+              delay: const Duration(milliseconds: 150),
+              child: Row(
+                mainAxisAlignment: .end,
+                children: [
+                  Text(
+                    'SHOW ARCHIVED',
+                    style: GoogleFonts.jetBrainsMono(
+                      color: CadenceColors.textSecondary,
+                      fontSize: 10,
+                      fontWeight: .bold,
+                    ),
                   ),
-                ),
-                Switch(
-                  value: filterState.showArchived,
-                  onChanged: filterNotifier.toggleShowArchived,
-                  activeThumbColor: CadenceColors.accent,
-                  materialTapTargetSize: .shrinkWrap,
-                ),
-              ],
+                  Switch(
+                    value: filterState.showArchived,
+                    onChanged: filterNotifier.toggleShowArchived,
+                    activeThumbColor: CadenceColors.accent,
+                    materialTapTargetSize: .shrinkWrap,
+                  ),
+                ],
+              ),
             ),
-
-            switch (tab) {
-              LibraryTab.tasks => _TaskList(
-                tasksByCategory: state.tasksByCategory,
-              ),
-              LibraryTab.habits => _HabitList(
-                habitsByCategory: state.habitsByCategory,
-              ),
-            },
+            FadeInTransition(
+              delay: const Duration(milliseconds: 200),
+              child: switch (tab) {
+                LibraryTab.tasks => _TaskList(
+                  tasksByCategory: state.tasksByCategory,
+                ),
+                LibraryTab.habits => _HabitList(
+                  habitsByCategory: state.habitsByCategory,
+                ),
+              },
+            ),
           ],
         );
       },

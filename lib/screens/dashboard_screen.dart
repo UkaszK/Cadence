@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -127,57 +128,69 @@ class DashboardScreen extends ConsumerWidget {
         return CadenceScreenContainer(
           spacing: 25,
           children: [
-            _Header(
-              selectedDay: selectedDay,
-              leftAction: () => notifier.shiftDay(-1),
-              rightAction: () => notifier.shiftDay(1),
-              onClickDate: () =>
-                  _selectDate(context, selectedDay, notifier.setDay),
+            FadeInTransition(
+              delay: Duration.zero,
+              child: _Header(
+                selectedDay: selectedDay,
+                leftAction: () => notifier.shiftDay(-1),
+                rightAction: () => notifier.shiftDay(1),
+                onClickDate: () =>
+                    _selectDate(context, selectedDay, notifier.setDay),
+              ),
             ),
-
-            DashboardDailyProgress(progress: state.progress),
-
-            DashboardPlan(
-              scheduledTasks: state.scheduledTasks,
-              placedHabits: state.placedHabits,
-              onCheckScheduledTask: (scheduledTask, newValue) {
-                final archived = notifier.checkScheduledTask(
-                  scheduledTask,
-                  newValue,
-                );
-                if (archived != null) {
-                  _showAutoArchiveSnackBar(
-                    context,
-                    archived,
-                    notifier.undoAutoArchive,
-                  );
-                }
-              },
-              onCheckSubTask: (scheduledTask, subTask, newValue) {
-                final archived = notifier.checkSubTask(
-                  scheduledTask,
-                  subTask,
-                  newValue,
-                );
-                if (archived != null) {
-                  _showAutoArchiveSnackBar(
-                    context,
-                    archived,
-                    notifier.undoAutoArchive,
-                  );
-                }
-              },
-              onCheckHabitOccurrence: notifier.checkHabitOccurrence,
-              onEditScheduledTask: (scheduledTask) =>
-                  _editScheduledTaskDetails(context, scheduledTask, notifier),
+            FadeInTransition(
+              delay: const Duration(milliseconds: 100),
+              child: DashboardDailyProgress(progress: state.progress),
             ),
-
-            DashboardHabits(
-              expectedHabits: state.expectedHabits,
-              completedHabitIds: state.completedHabitIds,
-              dayOccurrences: state.habitOccurrences,
-              onCheckHabit: (habit, newValue) =>
-                  notifier.checkHabit(habit, newValue, state.habitOccurrences),
+            FadeInTransition(
+              delay: const Duration(milliseconds: 150),
+              child: DashboardPlan(
+                scheduledTasks: state.scheduledTasks,
+                placedHabits: state.placedHabits,
+                onCheckScheduledTask: (scheduledTask, newValue) {
+                  final archived = notifier.checkScheduledTask(
+                    scheduledTask,
+                    newValue,
+                  );
+                  if (archived != null) {
+                    _showAutoArchiveSnackBar(
+                      context,
+                      archived,
+                      notifier.undoAutoArchive,
+                    );
+                  }
+                },
+                onCheckSubTask: (scheduledTask, subTask, newValue) {
+                  final archived = notifier.checkSubTask(
+                    scheduledTask,
+                    subTask,
+                    newValue,
+                  );
+                  if (archived != null) {
+                    _showAutoArchiveSnackBar(
+                      context,
+                      archived,
+                      notifier.undoAutoArchive,
+                    );
+                  }
+                },
+                onCheckHabitOccurrence: notifier.checkHabitOccurrence,
+                onEditScheduledTask: (scheduledTask) =>
+                    _editScheduledTaskDetails(context, scheduledTask, notifier),
+              ),
+            ),
+            FadeInTransition(
+              delay: const Duration(milliseconds: 200),
+              child: DashboardHabits(
+                expectedHabits: state.expectedHabits,
+                completedHabitIds: state.completedHabitIds,
+                dayOccurrences: state.habitOccurrences,
+                onCheckHabit: (habit, newValue) => notifier.checkHabit(
+                  habit,
+                  newValue,
+                  state.habitOccurrences,
+                ),
+              ),
             ),
           ],
         );
