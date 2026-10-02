@@ -136,20 +136,7 @@ class DayPicker extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => _selectDate(context),
                   behavior: HitTestBehavior.opaque,
-                  child: CadenceValueSwitcher(
-                    value: selectedDay,
-                    directionOf: (previous, next) =>
-                        next.isAfter(previous) ? 1 : -1,
-                    slideFraction: 0.2,
-                    builder: (day) => Text(
-                      'WEEK ${day.weekOfYear().toString()} // ${DateFormat('EEEE, d/MM/yyyy').format(day).toUpperCase()}',
-                      style: GoogleFonts.jetBrainsMono(
-                        color: CadenceColors.textPrimary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  child: _WeekHeader(selectedDay: selectedDay),
                 ),
               ),
             ),
@@ -204,6 +191,52 @@ class DayPicker extends StatelessWidget {
 
         const SizedBox(height: 25),
       ],
+    );
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  const _WeekHeader({required this.selectedDay});
+
+  final DateTime selectedDay;
+
+  static final _dateFormat = DateFormat('EEEE, d/MM/yyyy');
+
+  static final _style = GoogleFonts.jetBrainsMono(
+    color: CadenceColors.textPrimary,
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+  );
+
+  static DateTime _weekStart(DateTime day) {
+    return day.subtract(Duration(days: day.weekday - 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CadenceValueSwitcher(
+      value: _weekStart(selectedDay),
+      directionOf: (previous, next) => next.isAfter(previous) ? 1 : -1,
+      slideFraction: 0.2,
+      builder: (_) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Align(
+            alignment: AlignmentGeometry.centerRight,
+            child: Text('WEEK ${selectedDay.weekOfYear()} // ', style: _style),
+          ),
+          Align(
+            alignment: AlignmentGeometry.centerLeft,
+            child: CadenceValueSwitcher(
+              value: selectedDay,
+              directionOf: (previous, next) => next.isAfter(previous) ? 1 : -1,
+              slideFraction: 0.35,
+              builder: (day) =>
+                  Text(_dateFormat.format(day).toUpperCase(), style: _style),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
