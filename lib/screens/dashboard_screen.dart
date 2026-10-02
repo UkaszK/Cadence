@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/task.dart';
 import 'package:cadence/providers/dashboard_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
@@ -9,6 +10,7 @@ import 'package:cadence/widgets/dashboard_screen/daily_progress/dashboard_daily_
 import 'package:cadence/widgets/dashboard_screen/habits/dashboard_habits.dart';
 import 'package:cadence/widgets/dashboard_screen/plan/dashboard_plan.dart';
 import 'package:cadence/widgets/cadence_loading_screen.dart';
+import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
 import 'package:cadence/widgets/reusables/cadence_screen_container.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -99,6 +101,20 @@ class DashboardScreen extends ConsumerWidget {
       );
   }
 
+  Future<void> _editScheduledTaskDetails(
+    BuildContext context,
+    ScheduledTask scheduledTask,
+    DashboardViewStateNotifier notifier,
+  ) async {
+    final details = await showEditScheduledTaskSheet(context, scheduledTask);
+    if (details == null) return;
+    notifier.updateScheduledTaskDetails(
+      scheduledTask,
+      name: details.name,
+      subTasks: details.subTasks,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(dashboardViewStateNotifierProvider.notifier);
@@ -152,6 +168,8 @@ class DashboardScreen extends ConsumerWidget {
                 }
               },
               onCheckHabitOccurrence: notifier.checkHabitOccurrence,
+              onEditScheduledTask: (scheduledTask) =>
+                  _editScheduledTaskDetails(context, scheduledTask, notifier),
             ),
 
             DashboardHabits(

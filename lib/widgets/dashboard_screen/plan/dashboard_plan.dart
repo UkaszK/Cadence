@@ -36,6 +36,7 @@ class DashboardPlan extends StatelessWidget {
     required this.onCheckScheduledTask,
     required this.onCheckSubTask,
     required this.onCheckHabitOccurrence,
+    required this.onEditScheduledTask,
   });
 
   final List<ScheduledTask> scheduledTasks;
@@ -43,6 +44,7 @@ class DashboardPlan extends StatelessWidget {
   final void Function(ScheduledTask, bool) onCheckScheduledTask;
   final void Function(ScheduledTask, SubTask, bool) onCheckSubTask;
   final void Function(HabitOccurrence, bool) onCheckHabitOccurrence;
+  final void Function(ScheduledTask) onEditScheduledTask;
 
   Widget _buildHeader(String? timelineText) {
     return CadenceSectionHeader(
@@ -147,6 +149,7 @@ class DashboardPlan extends StatelessWidget {
                 onCheckTask: (newValue) => onCheckScheduledTask(task, newValue),
                 onCheckSubTask: (subTask, newValue) =>
                     onCheckSubTask(task, subTask, newValue),
+                onEdit: () => onEditScheduledTask(task),
               ),
               _HabitEntry(:final occurrence) => PlannedHabitBlock(
                 occurrence: occurrence,

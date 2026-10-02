@@ -105,8 +105,9 @@ class DashboardViewStateNotifier extends Notifier<DashboardViewState> {
       completed: newValue,
     );
 
-    final completed =
-        newValue && updatedSubTasks.every((st) => st.completed) ? true : null;
+    final completed = newValue && updatedSubTasks.every((st) => st.completed)
+        ? true
+        : null;
 
     final updated = scheduledTask.copyWith(
       subTasks: updatedSubTasks,
@@ -117,6 +118,18 @@ class DashboardViewStateNotifier extends Notifier<DashboardViewState> {
     IsarDataStore.updateScheduledTask(scheduledTask.id, updated);
 
     return completed == true ? _autoArchive(scheduledTask.taskId) : null;
+  }
+
+  /// Updates the name and sub tasks of a scheduled task (quick dashboard edit).
+  void updateScheduledTaskDetails(
+    ScheduledTask scheduledTask, {
+    required String name,
+    required List<SubTask> subTasks,
+  }) {
+    IsarDataStore.updateScheduledTask(
+      scheduledTask.id,
+      scheduledTask.copyWith(name: name, subTasks: subTasks),
+    );
   }
 
   Task? _autoArchive(int taskId) {

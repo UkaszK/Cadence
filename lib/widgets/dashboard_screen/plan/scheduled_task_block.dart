@@ -11,11 +11,13 @@ class ScheduledTaskBlock extends StatelessWidget {
     required this.scheduledTask,
     required this.onCheckTask,
     required this.onCheckSubTask,
+    required this.onEdit,
   });
 
   final ScheduledTask scheduledTask;
   final void Function(bool) onCheckTask;
   final void Function(SubTask, bool) onCheckSubTask;
+  final VoidCallback onEdit;
 
   Widget _buildSubTask(SubTask subTask) {
     final checked = subTask.completed;
@@ -118,12 +120,28 @@ class ScheduledTaskBlock extends StatelessWidget {
                             ],
                           ),
 
-                          Text(
-                            scheduledTask.name,
-                            style: GoogleFonts.jetBrainsMono(
-                              color: CadenceColors.textPrimary,
-                              fontSize: 14,
-                              fontWeight: FontWeight(1000),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onEdit,
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    scheduledTask.name,
+                                    style: GoogleFonts.jetBrainsMono(
+                                      color: CadenceColors.textPrimary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight(1000),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.edit_outlined,
+                                  size: 12,
+                                  color: CadenceColors.textSecondary,
+                                ),
+                              ],
                             ),
                           ),
                         ],
