@@ -53,9 +53,45 @@ class DashboardScreen extends ConsumerWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text("'${task.name}' completed and moved to archive"),
+          backgroundColor: CadenceColors.surface,
+          behavior: SnackBarBehavior.floating,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: CadenceColors.accent, width: 1),
+          ),
+          content: Row(
+            children: [
+              const Icon(Icons.archive, size: 18, color: CadenceColors.accent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'COMPLETED & ARCHIVED',
+                      style: GoogleFonts.jetBrainsMono(
+                        color: CadenceColors.textSecondary,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      task.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.jetBrainsMono(
+                        color: CadenceColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           action: SnackBarAction(
-            label: 'Undo',
+            label: 'UNDO',
             textColor: CadenceColors.accent,
             onPressed: () => onUndo(task),
           ),

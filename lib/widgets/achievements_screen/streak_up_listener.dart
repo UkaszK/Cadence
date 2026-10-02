@@ -43,7 +43,6 @@ void _showStreakUpSnackBar(BuildContext context, int oldStreak, int newStreak) {
     SnackBar(
       backgroundColor: CadenceColors.surface,
       behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 4),
       shape: RoundedRectangleBorder(
         side: const BorderSide(color: CadenceColors.otherAccent, width: 1),
       ),
