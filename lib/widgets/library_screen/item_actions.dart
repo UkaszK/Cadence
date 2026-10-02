@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 import 'package:cadence/widgets/reusables/cadence_button.dart';
 
 class ItemIconButton extends StatelessWidget {
@@ -11,15 +12,17 @@ class ItemIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        radius: 10,
-        customBorder: const CircleBorder(),
-        onTap: onPress,
-        child: Container(
-          padding: EdgeInsets.all(5),
-          child: Icon(icon, size: 16, color: CadenceColors.textSecondary),
+    return PressScale(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          radius: 10,
+          customBorder: const CircleBorder(),
+          onTap: onPress,
+          child: Container(
+            padding: EdgeInsets.all(5),
+            child: Icon(icon, size: 16, color: CadenceColors.textSecondary),
+          ),
         ),
       ),
     );

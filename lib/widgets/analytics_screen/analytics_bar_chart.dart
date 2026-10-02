@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 class AnalyticsBar {
@@ -65,7 +66,9 @@ class AnalyticsBarChart extends StatelessWidget {
             ),
           ),
           titlesData: FlTitlesData(
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             rightTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
@@ -150,6 +153,8 @@ class AnalyticsBarChart extends StatelessWidget {
               ),
           ],
         ),
+        duration: AnimationDurations.medium,
+        curve: CadenceMotion.enter,
       ),
     );
   }

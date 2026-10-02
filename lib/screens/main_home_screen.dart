@@ -32,17 +32,7 @@ class MainHomeScreen extends ConsumerWidget {
       appBar: CadenceAppBar(),
       body: AchievementUnlockListener(
         child: StreakUpListener(
-          child: AnimatedSwitcher(
-            duration: AnimationDurations.fast,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            child: IndexedStack(
-              key: ValueKey(currentIndex),
-              index: currentIndex,
-              children: _pages,
-            ),
-          ),
+          child: CadenceTabSwitcher(index: currentIndex, children: _pages),
         ),
       ),
       bottomNavigationBar: CadenceNavigationBar(

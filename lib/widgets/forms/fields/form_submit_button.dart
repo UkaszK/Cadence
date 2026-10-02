@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 
 class FormSubmitButton extends StatelessWidget {
   const FormSubmitButton({
@@ -16,26 +17,30 @@ class FormSubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: disabled ? null : onSubmit,
-      child: Container(
-        padding: EdgeInsets.all(16),
-        color: disabled ? primaryColor.withValues(alpha: 0.3) : primaryColor,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 5,
-          children: [
-            Icon(Icons.power_settings_new, color: CadenceColors.black),
+    return PressScale(
+      child: InkWell(
+        onTap: disabled ? null : onSubmit,
+        child: AnimatedContainer(
+          duration: AnimationDurations.fast,
+          curve: CadenceMotion.enter,
+          padding: const EdgeInsets.all(16),
+          color: disabled ? primaryColor.withValues(alpha: 0.3) : primaryColor,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 5,
+            children: [
+              Icon(Icons.power_settings_new, color: CadenceColors.black),
 
-            Text(
-              'SAVE',
-              style: GoogleFonts.jetBrainsMono(
-                color: CadenceColors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+              Text(
+                'SAVE',
+                style: GoogleFonts.jetBrainsMono(
+                  color: CadenceColors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

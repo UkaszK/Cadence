@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 import 'package:cadence/widgets/themed_svg_icon.dart';
 
 class CadenceNavigationBar extends StatelessWidget {
@@ -20,40 +21,11 @@ class CadenceNavigationBar extends StatelessWidget {
     required String label,
     required int index,
   }) {
-    final isSelected = selectedIndex == index;
-    final color = isSelected
-        ? CadenceColors.textPrimary
-        : CadenceColors.textSecondary;
-
-    return InkWell(
+    return _NavItem(
+      icon: icon,
+      label: label,
+      selected: selectedIndex == index,
       onTap: () => onDestinationSelected(index),
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconTheme(
-              data: IconThemeData(color: color, size: 22),
-              child: icon,
-            ),
-
-            SizedBox(height: 6),
-
-            Text(
-              label,
-              style: GoogleFonts.jetBrainsMono(
-                color: color,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.visible,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -106,6 +78,88 @@ class CadenceNavigationBar extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Widget icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressScale(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: 64,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: selected ? 1 : 0),
+            duration: CadenceMotion.of(context, AnimationDurations.fast),
+            curve: CadenceMotion.enter,
+            builder: (context, t, child) {
+              final color = Color.lerp(
+                CadenceColors.textSecondary,
+                CadenceColors.textPrimary,
+                t,
+              )!;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Transform.scale(
+                    scale: 1 + (0.1 * t),
+                    child: IconTheme(
+                      data: IconThemeData(color: color, size: 22),
+                      child: child!,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    style: GoogleFonts.jetBrainsMono(
+                      color: color,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                  ),
+                  const SizedBox(height: 3),
+                  Container(
+                    width: 16 * t,
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: CadenceColors.accent.withValues(alpha: t),
+                      borderRadius: BorderRadius.circular(1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CadenceColors.accent.withValues(
+                            alpha: 0.7 * t,
+                          ),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+            child: icon,
           ),
         ),
       ),

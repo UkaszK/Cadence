@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/daily_progress_metrics.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 
 class DashboardDailyProgress extends StatelessWidget {
   const DashboardDailyProgress({super.key, required this.progress});
@@ -10,11 +11,26 @@ class DashboardDailyProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
+    final complete = progress.progress >= 1;
+
+    return AnimatedContainer(
+      duration: CadenceMotion.of(context, AnimationDurations.medium),
+      curve: CadenceMotion.enter,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: CadenceColors.border, width: 1),
+        border: Border.all(
+          color: complete ? CadenceColors.accent : CadenceColors.border,
+          width: 1,
+        ),
         color: CadenceColors.surface,
+        boxShadow: complete
+            ? [
+                BoxShadow(
+                  color: CadenceColors.accent.withValues(alpha: 0.22),
+                  blurRadius: 16,
+                ),
+              ]
+            : null,
       ),
       child: Column(
         children: [
@@ -29,7 +45,6 @@ class DashboardDailyProgress extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               Text(
                 '${progress.progressPercent}%',
                 style: GoogleFonts.jetBrainsMono(
@@ -40,9 +55,7 @@ class DashboardDailyProgress extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 10),
-
           LinearProgressIndicator(
             value: progress.progress,
             valueColor: const AlwaysStoppedAnimation<Color>(
@@ -50,11 +63,9 @@ class DashboardDailyProgress extends StatelessWidget {
             ),
             backgroundColor: CadenceColors.border,
             minHeight: 5,
-            borderRadius: BorderRadiusGeometry.all(Radius.circular(5)),
+            borderRadius: const BorderRadius.all(Radius.circular(5)),
           ),
-
           const SizedBox(height: 10),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

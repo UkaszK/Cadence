@@ -99,14 +99,20 @@ class LibraryScreen extends ConsumerWidget {
             ),
             FadeInTransition(
               delay: const Duration(milliseconds: 200),
-              child: switch (tab) {
-                LibraryTab.tasks => _TaskList(
-                  tasksByCategory: state.tasksByCategory,
-                ),
-                LibraryTab.habits => _HabitList(
-                  habitsByCategory: state.habitsByCategory,
-                ),
-              },
+              child: CadenceValueSwitcher(
+                value: tab,
+                directionOf: (previous, next) =>
+                    next.index > previous.index ? 1 : -1,
+                slideFraction: 0.03,
+                builder: (selectedTab) => switch (selectedTab) {
+                  LibraryTab.tasks => _TaskList(
+                    tasksByCategory: state.tasksByCategory,
+                  ),
+                  LibraryTab.habits => _HabitList(
+                    habitsByCategory: state.habitsByCategory,
+                  ),
+                },
+              ),
             ),
           ],
         );

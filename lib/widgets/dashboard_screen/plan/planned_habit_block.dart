@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 import 'package:cadence/widgets/reusables/cadence_badge.dart';
 
 /// A habit that has been placed into a time slot, shown inside the plan.
@@ -22,8 +23,10 @@ class PlannedHabitBlock extends StatelessWidget {
         ? CadenceColors.success
         : CadenceColors.otherAccent;
 
-    return Container(
-      padding: EdgeInsets.all(16),
+    return AnimatedContainer(
+      duration: AnimationDurations.fast,
+      curve: CadenceMotion.enter,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(width: 0.5, color: color),
         color: CadenceColors.surface,
@@ -37,9 +40,9 @@ class PlannedHabitBlock extends StatelessWidget {
                 SizedBox(
                   width: 24,
                   height: 24,
-                  child: Checkbox(
+                  child: AnimatedCheckbox(
                     value: occurrence.completed,
-                    onChanged: (value) => onCheck(value ?? false),
+                    onChanged: onCheck,
                     side: BorderSide(color: color),
                     activeColor: CadenceColors.otherAccent,
                     checkColor: CadenceColors.black,
@@ -88,19 +91,21 @@ class PlannedHabitBlock extends StatelessWidget {
                             color: CadenceColors.otherAccent,
                           ),
                           Flexible(
-                            child: Text(
-                              occurrence.name,
-                              overflow: .ellipsis,
+                            child: AnimatedDefaultTextStyle(
+                              duration: AnimationDurations.fast,
+                              curve: CadenceMotion.enter,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.jetBrainsMono(
                                 color: occurrence.completed
                                     ? CadenceColors.textSecondary
                                     : CadenceColors.textPrimary,
                                 fontSize: 14,
-                                fontWeight: FontWeight(1000),
+                                fontWeight: FontWeight.w900,
                                 decoration: occurrence.completed
                                     ? TextDecoration.lineThrough
                                     : null,
                               ),
+                              child: Text(occurrence.name),
                             ),
                           ),
                         ],

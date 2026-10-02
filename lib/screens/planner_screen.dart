@@ -148,12 +148,17 @@ class PlannerScreen extends ConsumerWidget {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     transitionBuilder: (child, animation) {
+                      final curved = CurvedAnimation(
+                        parent: animation,
+                        curve: CadenceMotion.enter,
+                        reverseCurve: CadenceMotion.exit,
+                      );
                       return SlideTransition(
                         position: Tween<Offset>(
                           begin: const Offset(0, -1),
                           end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
+                        ).animate(curved),
+                        child: FadeTransition(opacity: curved, child: child),
                       );
                     },
                     child: hasTimeSlot

@@ -6,6 +6,7 @@ import 'package:cadence/providers/navigation_bar_providers.dart';
 import 'package:cadence/screens/habit_form_screen.dart';
 import 'package:cadence/screens/task_form_screen.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 
 /// Central "+" button. On the Library tab it opens the form matching the
 /// active segment; elsewhere it asks whether to create a task or a habit.
@@ -40,25 +41,30 @@ class CadenceFAB extends ConsumerWidget {
           mainAxisSize: .min,
           children: [
             const SizedBox(height: 8),
-            _ChooserTile(
-              icon: Icons.task_alt,
-              color: CadenceColors.accent,
-              title: 'New Task',
-              subtitle: 'One-off or repeatable work you plan into a slot',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _openTaskForm(context);
-              },
+            FadeInTransition(
+              child: _ChooserTile(
+                icon: Icons.task_alt,
+                color: CadenceColors.accent,
+                title: 'New Task',
+                subtitle: 'One-off or repeatable work you plan into a slot',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _openTaskForm(context);
+                },
+              ),
             ),
-            _ChooserTile(
-              icon: Icons.repeat,
-              color: CadenceColors.otherAccent,
-              title: 'New Habit',
-              subtitle: 'Recurs on weekdays or every N days',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _openHabitForm(context);
-              },
+            FadeInTransition(
+              delay: const Duration(milliseconds: 50),
+              child: _ChooserTile(
+                icon: Icons.repeat,
+                color: CadenceColors.otherAccent,
+                title: 'New Habit',
+                subtitle: 'Recurs on weekdays or every N days',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _openHabitForm(context);
+                },
+              ),
             ),
             const SizedBox(height: 8),
           ],
@@ -77,42 +83,49 @@ class CadenceFAB extends ConsumerWidget {
         ? CadenceColors.otherAccent
         : CadenceColors.accent;
 
-    return Container(
-      height: 64,
-      width: 64,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.4),
-            blurRadius: 3,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: FloatingActionButton(
-        heroTag: 'main_center_fab',
-        onPressed: () {
-          if (!isLibrary) {
-            _showChooser(context);
-            return;
-          }
-          switch (libraryTab) {
-            case LibraryTab.tasks:
-              _openTaskForm(context);
-            case LibraryTab.habits:
-              _openHabitForm(context);
-          }
-        },
-        backgroundColor: color,
-        shape: CircleBorder(
-          side: BorderSide(
-            color: CadenceColors.black.withValues(alpha: 0.8),
-            width: 3,
+    return PressScale(
+      scale: 0.92,
+      child: Semantics(
+        button: true,
+        label: isLibrary && libraryTab == LibraryTab.habits
+            ? 'New habit'
+            : 'Add',
+        child: GestureDetector(
+          onTap: () {
+            if (!isLibrary) {
+              _showChooser(context);
+              return;
+            }
+            switch (libraryTab) {
+              case LibraryTab.tasks:
+                _openTaskForm(context);
+              case LibraryTab.habits:
+                _openHabitForm(context);
+            }
+          },
+          child: AnimatedContainer(
+            duration: CadenceMotion.of(context, AnimationDurations.fast),
+            curve: CadenceMotion.enter,
+            height: 64,
+            width: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              border: Border.all(
+                color: CadenceColors.black.withValues(alpha: 0.8),
+                width: 3,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.45),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: const Icon(Icons.add, color: CadenceColors.black, size: 32),
           ),
         ),
-        elevation: 2,
-        child: Icon(Icons.add, color: CadenceColors.black, size: 32),
       ),
     );
   }
