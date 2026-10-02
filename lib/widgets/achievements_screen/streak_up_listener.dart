@@ -7,7 +7,8 @@ import 'package:cadence/theme/cadence_colors.dart';
 
 /// Watches the derived current streak and celebrates every in-session
 /// increase. The streak only grows when the first completion of the day
-/// lands, so an increase means exactly that moment.
+/// lands, so an increase means exactly that moment. When the increase passes
+/// the best streak so far, a record variant is shown instead.
 class StreakUpListener extends ConsumerWidget {
   const StreakUpListener({super.key, required this.child});
 
@@ -20,15 +21,23 @@ class StreakUpListener extends ConsumerWidget {
       next,
     ) {
       final oldStreak = previous?.value?.currentStreak;
+      final oldBest = previous?.value?.bestStreak;
       final newStreak = next.value?.currentStreak;
       // A null previous value is the initial load, not an upgrade.
-      if (oldStreak == null || newStreak == null || newStreak <= oldStreak) {
+      if (oldStreak == null ||
+          oldBest == null ||
+          newStreak == null ||
+          newStreak <= oldStreak) {
         return;
       }
 
+      // Passing the best streak shown on the achievements page is a record.
+      // The very first streak has nothing to beat yet.
+      final previousBest = oldBest > 0 && newStreak > oldBest ? oldBest : null;
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        _showStreakUpSnackBar(context, oldStreak, newStreak);
+        _showStreakUpSnackBar(context, oldStreak, newStreak, previousBest);
       });
     });
 
@@ -36,19 +45,27 @@ class StreakUpListener extends ConsumerWidget {
   }
 }
 
-void _showStreakUpSnackBar(BuildContext context, int oldStreak, int newStreak) {
+void _showStreakUpSnackBar(
+  BuildContext context,
+  int oldStreak,
+  int newStreak,
+  int? previousBest,
+) {
+  final color = previousBest == null
+      ? CadenceColors.otherAccent
+      : CadenceColors.gold;
+
   // No hideCurrentSnackBar(): let this queue behind any achievement snackbar
   // triggered by the same completion instead of dismissing it.
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       backgroundColor: CadenceColors.surface,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(color: CadenceColors.otherAccent, width: 1),
-      ),
+      shape: RoundedRectangleBorder(side: BorderSide(color: color, width: 1)),
       content: _StreakUpSnackBarContent(
         oldStreak: oldStreak,
         newStreak: newStreak,
+        previousBest: previousBest,
       ),
     ),
   );
@@ -58,10 +75,14 @@ class _StreakUpSnackBarContent extends StatefulWidget {
   const _StreakUpSnackBarContent({
     required this.oldStreak,
     required this.newStreak,
+    required this.previousBest,
   });
 
   final int oldStreak;
   final int newStreak;
+
+  /// Set when this upgrade beats the all-time best.
+  final int? previousBest;
 
   @override
   State<_StreakUpSnackBarContent> createState() =>
@@ -118,14 +139,15 @@ class _StreakUpSnackBarContentState extends State<_StreakUpSnackBarContent>
 
   @override
   Widget build(BuildContext context) {
-    const color = CadenceColors.otherAccent;
+    final isRecord = widget.previousBest != null;
+    final color = isRecord ? CadenceColors.gold : CadenceColors.otherAccent;
 
     return Row(
       children: [
         ScaleTransition(
           scale: _flameScale,
-          child: const Icon(
-            Icons.local_fire_department,
+          child: Icon(
+            isRecord ? Icons.emoji_events : Icons.local_fire_department,
             size: 22,
             color: color,
           ),
@@ -136,7 +158,7 @@ class _StreakUpSnackBarContentState extends State<_StreakUpSnackBarContent>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'STREAK UP!',
+                isRecord ? 'NEW RECORD!' : 'STREAK UP!',
                 style: GoogleFonts.jetBrainsMono(
                   color: CadenceColors.textSecondary,
                   fontSize: 9,
@@ -178,12 +200,25 @@ class _StreakUpSnackBarContentState extends State<_StreakUpSnackBarContent>
                           : '${widget.oldStreak}D',
                       key: ValueKey(_showNew ? 'new' : 'old'),
                       style: GoogleFonts.jetBrainsMono(
-                        color: CadenceColors.textPrimary,
+                        color: isRecord
+                            ? CadenceColors.gold
+                            : CadenceColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
+                  if (isRecord) ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      'PREVIOUS BEST ${widget.previousBest}D STREAK',
+                      style: GoogleFonts.jetBrainsMono(
+                        color: CadenceColors.textSecondary,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
