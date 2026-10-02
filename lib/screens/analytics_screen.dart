@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,19 +28,43 @@ class AnalyticsScreen extends ConsumerWidget {
       data: (metrics) => CadenceScreenContainer(
         spacing: 25,
         children: [
-          _Header(
-            range: metrics.range,
-            startDate: metrics.startDate,
-            endDate: metrics.endDate,
-            onRangeChange: ref.read(analyticsRangeProvider.notifier).select,
+          FadeInTransition(
+            delay: Duration.zero,
+            child: _Header(
+              range: metrics.range,
+              startDate: metrics.startDate,
+              endDate: metrics.endDate,
+              onRangeChange: ref.read(analyticsRangeProvider.notifier).select,
+            ),
           ),
-          AnalyticsOverviewTiles(metrics: metrics),
-          const AchievementsPreview(),
-          DailyCompletionChart(metrics: metrics),
-          WeekdayPerformanceChart(metrics: metrics),
-          CategoryBreakdown(metrics: metrics),
-          HabitConsistency(metrics: metrics),
-          ScheduleDistribution(metrics: metrics),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 100),
+            child: AnalyticsOverviewTiles(metrics: metrics),
+          ),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 150),
+            child: const AchievementsPreview(),
+          ),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 200),
+            child: DailyCompletionChart(metrics: metrics),
+          ),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 250),
+            child: WeekdayPerformanceChart(metrics: metrics),
+          ),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 300),
+            child: CategoryBreakdown(metrics: metrics),
+          ),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 350),
+            child: HabitConsistency(metrics: metrics),
+          ),
+          FadeInTransition(
+            delay: const Duration(milliseconds: 400),
+            child: ScheduleDistribution(metrics: metrics),
+          ),
         ],
       ),
       error: (error, stack) => Center(child: Text('Error loading: $error')),

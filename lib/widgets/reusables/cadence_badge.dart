@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/utils/animations.dart';
 
 class CadenceBadge extends StatelessWidget {
   const CadenceBadge({
@@ -23,7 +24,9 @@ class CadenceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: AnimationDurations.fast,
+      curve: CadenceMotion.enter,
       padding: padding,
       decoration: BoxDecoration(
         border: Border.all(color: borderColor ?? primaryColor, width: 0.5),
@@ -37,13 +40,15 @@ class CadenceBadge extends StatelessWidget {
             const SizedBox(width: 5),
           ],
 
-          Text(
-            label,
+          AnimatedDefaultTextStyle(
+            duration: AnimationDurations.fast,
+            curve: CadenceMotion.enter,
             style: GoogleFonts.jetBrainsMono(
               color: primaryColor,
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
+            child: Text(label),
           ),
 
           if (suffixIcon != null) ...[

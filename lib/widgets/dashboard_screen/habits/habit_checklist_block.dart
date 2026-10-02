@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 import 'package:cadence/widgets/library_screen/task_block.dart';
 import 'package:cadence/widgets/reusables/cadence_badge.dart';
 
@@ -23,10 +24,17 @@ class HabitChecklistBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
+    return AnimatedContainer(
+      duration: AnimationDurations.fast,
+      curve: CadenceMotion.enter,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(width: 1, color: CadenceColors.border),
+        border: Border.all(
+          width: 1,
+          color: completed
+              ? CadenceColors.otherAccent.withValues(alpha: 0.45)
+              : CadenceColors.border,
+        ),
         color: CadenceColors.surface,
       ),
       child: Row(
@@ -34,11 +42,14 @@ class HabitChecklistBlock extends StatelessWidget {
           SizedBox(
             width: 24,
             height: 24,
-            child: Checkbox(
+            child: AnimatedCheckbox(
               value: completed,
-              onChanged: (newValue) => onCheck(newValue ?? false),
+              onChanged: onCheck,
               activeColor: CadenceColors.otherAccent,
-              side: BorderSide(color: CadenceColors.otherAccent, width: 1),
+              side: const BorderSide(
+                color: CadenceColors.otherAccent,
+                width: 1,
+              ),
             ),
           ),
 
@@ -48,8 +59,9 @@ class HabitChecklistBlock extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  habit.name,
+                AnimatedDefaultTextStyle(
+                  duration: AnimationDurations.fast,
+                  curve: CadenceMotion.enter,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.jetBrainsMono(
@@ -60,6 +72,7 @@ class HabitChecklistBlock extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     decoration: completed ? TextDecoration.lineThrough : null,
                   ),
+                  child: Text(habit.name),
                 ),
 
                 const SizedBox(height: 3),

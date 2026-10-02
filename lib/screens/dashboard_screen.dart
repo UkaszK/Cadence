@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -127,57 +128,86 @@ class DashboardScreen extends ConsumerWidget {
         return CadenceScreenContainer(
           spacing: 25,
           children: [
-            _Header(
-              selectedDay: selectedDay,
-              leftAction: () => notifier.shiftDay(-1),
-              rightAction: () => notifier.shiftDay(1),
-              onClickDate: () =>
-                  _selectDate(context, selectedDay, notifier.setDay),
+            FadeInTransition(
+              delay: Duration.zero,
+              child: _Header(
+                selectedDay: selectedDay,
+                leftAction: () => notifier.shiftDay(-1),
+                rightAction: () => notifier.shiftDay(1),
+                onClickDate: () =>
+                    _selectDate(context, selectedDay, notifier.setDay),
+              ),
             ),
-
-            DashboardDailyProgress(progress: state.progress),
-
-            DashboardPlan(
-              scheduledTasks: state.scheduledTasks,
-              placedHabits: state.placedHabits,
-              onCheckScheduledTask: (scheduledTask, newValue) {
-                final archived = notifier.checkScheduledTask(
-                  scheduledTask,
-                  newValue,
-                );
-                if (archived != null) {
-                  _showAutoArchiveSnackBar(
-                    context,
-                    archived,
-                    notifier.undoAutoArchive,
-                  );
-                }
-              },
-              onCheckSubTask: (scheduledTask, subTask, newValue) {
-                final archived = notifier.checkSubTask(
-                  scheduledTask,
-                  subTask,
-                  newValue,
-                );
-                if (archived != null) {
-                  _showAutoArchiveSnackBar(
-                    context,
-                    archived,
-                    notifier.undoAutoArchive,
-                  );
-                }
-              },
-              onCheckHabitOccurrence: notifier.checkHabitOccurrence,
-              onEditScheduledTask: (scheduledTask) =>
-                  _editScheduledTaskDetails(context, scheduledTask, notifier),
+            FadeInTransition(
+              delay: const Duration(milliseconds: 100),
+              child: DashboardDailyProgress(progress: state.progress),
             ),
-
-            DashboardHabits(
-              expectedHabits: state.expectedHabits,
-              completedHabitIds: state.completedHabitIds,
-              dayOccurrences: state.habitOccurrences,
-              onCheckHabit: (habit, newValue) =>
-                  notifier.checkHabit(habit, newValue, state.habitOccurrences),
+            FadeInTransition(
+              delay: const Duration(milliseconds: 150),
+              child: CadenceValueSwitcher(
+                value: DateTime(
+                  selectedDay.year,
+                  selectedDay.month,
+                  selectedDay.day,
+                ),
+                directionOf: (previous, next) =>
+                    next.isAfter(previous) ? 1 : -1,
+                slideFraction: 0.03,
+                builder: (_) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 25,
+                  children: [
+                    DashboardPlan(
+                      scheduledTasks: state.scheduledTasks,
+                      placedHabits: state.placedHabits,
+                      onCheckScheduledTask: (scheduledTask, newValue) {
+                        final archived = notifier.checkScheduledTask(
+                          scheduledTask,
+                          newValue,
+                        );
+                        if (archived != null) {
+                          _showAutoArchiveSnackBar(
+                            context,
+                            archived,
+                            notifier.undoAutoArchive,
+                          );
+                        }
+                      },
+                      onCheckSubTask: (scheduledTask, subTask, newValue) {
+                        final archived = notifier.checkSubTask(
+                          scheduledTask,
+                          subTask,
+                          newValue,
+                        );
+                        if (archived != null) {
+                          _showAutoArchiveSnackBar(
+                            context,
+                            archived,
+                            notifier.undoAutoArchive,
+                          );
+                        }
+                      },
+                      onCheckHabitOccurrence: notifier.checkHabitOccurrence,
+                      onEditScheduledTask: (scheduledTask) =>
+                          _editScheduledTaskDetails(
+                            context,
+                            scheduledTask,
+                            notifier,
+                          ),
+                    ),
+                    DashboardHabits(
+                      expectedHabits: state.expectedHabits,
+                      completedHabitIds: state.completedHabitIds,
+                      dayOccurrences: state.habitOccurrences,
+                      onCheckHabit: (habit, newValue) => notifier.checkHabit(
+                        habit,
+                        newValue,
+                        state.habitOccurrences,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         );
@@ -238,12 +268,22 @@ class _Header extends StatelessWidget {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: onClickDate,
-              child: Text(
-                _dayFormat.format(selectedDay).toUpperCase(),
-                style: GoogleFonts.jetBrainsMono(
-                  color: CadenceColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+              child: CadenceValueSwitcher(
+                value: DateTime(
+                  selectedDay.year,
+                  selectedDay.month,
+                  selectedDay.day,
+                ),
+                directionOf: (previous, next) =>
+                    next.isAfter(previous) ? 1 : -1,
+                slideFraction: 0.35,
+                builder: (day) => Text(
+                  _dayFormat.format(day).toUpperCase(),
+                  style: GoogleFonts.jetBrainsMono(
+                    color: CadenceColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -264,17 +304,19 @@ class _DayNavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 20,
-        height: 20,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          border: Border.all(color: CadenceColors.border, width: 1),
+    return PressScale(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: CadenceColors.border, width: 1),
+          ),
+          child: Icon(icon, size: 14, color: CadenceColors.textSecondary),
         ),
-        child: Icon(icon, size: 14, color: CadenceColors.textSecondary),
       ),
     );
   }

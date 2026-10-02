@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/scheduled_task.dart';
@@ -29,8 +30,7 @@ class EditScheduledTaskSheet extends StatefulWidget {
   final ScheduledTask scheduledTask;
 
   @override
-  State<EditScheduledTaskSheet> createState() =>
-      _EditScheduledTaskSheetState();
+  State<EditScheduledTaskSheet> createState() => _EditScheduledTaskSheetState();
 }
 
 class _EditScheduledTaskSheetState extends State<EditScheduledTaskSheet> {
@@ -103,67 +103,71 @@ class _EditScheduledTaskSheetState extends State<EditScheduledTaskSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.edit_outlined,
-                            size: 16,
-                            color: CadenceColors.accent,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'EDIT TASK',
-                            style: GoogleFonts.jetBrainsMono(
+                  FadeInTransition(
+                    delay: Duration.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.edit_outlined,
+                              size: 16,
                               color: CadenceColors.accent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'EDIT TASK',
+                              style: GoogleFonts.jetBrainsMono(
+                                color: CadenceColors.accent,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: CadenceColors.textSecondary,
                             ),
                           ),
-                        ],
-                      ),
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4),
-                          child: Icon(
-                            Icons.close,
-                            size: 18,
-                            color: CadenceColors.textSecondary,
-                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-
                   const SizedBox(height: 12),
-
                   const Divider(height: 1),
-
                   const SizedBox(height: 16),
-
-                  FormTitleInputField(controller: _titleController),
-
-                  const SizedBox(height: 20),
-
-                  FormSubTasksField<SubTask>(
-                    items: _subTasks,
-                    onChange: (subTasks) =>
-                        setState(() => _subTasks = subTasks),
-                    labelOf: (subTask) => subTask.name,
-                    create: (text) => SubTask(name: text),
-                    rename: (subTask, text) =>
-                        SubTask(name: text, completed: subTask.completed),
-                    leadingBuilder: _buildSubTaskLeading,
+                  FadeInTransition(
+                    delay: const Duration(milliseconds: 100),
+                    child: FormTitleInputField(controller: _titleController),
                   ),
-
                   const SizedBox(height: 20),
-
-                  FormSubmitButton(
-                    onSubmit: _handleSubmit,
-                    disabled: isSubmitDisabled,
+                  FadeInTransition(
+                    delay: const Duration(milliseconds: 150),
+                    child: FormSubTasksField<SubTask>(
+                      items: _subTasks,
+                      onChange: (subTasks) =>
+                          setState(() => _subTasks = subTasks),
+                      labelOf: (subTask) => subTask.name,
+                      create: (text) => SubTask(name: text),
+                      rename: (subTask, text) =>
+                          SubTask(name: text, completed: subTask.completed),
+                      leadingBuilder: _buildSubTaskLeading,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  FadeInTransition(
+                    delay: const Duration(milliseconds: 200),
+                    child: FormSubmitButton(
+                      onSubmit: _handleSubmit,
+                      disabled: isSubmitDisabled,
+                    ),
                   ),
                 ],
               ),

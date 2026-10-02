@@ -1,3 +1,4 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/scheduled_task.dart';
@@ -28,9 +29,9 @@ class ScheduledTaskBlock extends StatelessWidget {
         SizedBox(
           width: 16,
           height: 16,
-          child: Checkbox(
+          child: AnimatedCheckbox(
             value: checked,
-            onChanged: (newValue) => onCheckSubTask(subTask, newValue ?? false),
+            onChanged: (newValue) => onCheckSubTask(subTask, newValue),
             activeColor: CadenceColors.otherAccent,
             side: BorderSide(color: CadenceColors.border, width: 1),
           ),
@@ -39,9 +40,8 @@ class ScheduledTaskBlock extends StatelessWidget {
         const SizedBox(width: 10),
 
         Expanded(
-          child: Text(
-            subTask.name,
-            softWrap: true,
+          child: AnimatedDefaultTextStyle(
+            duration: AnimationDurations.fast,
             style: GoogleFonts.jetBrainsMono(
               color: checked
                   ? CadenceColors.textSecondary
@@ -50,6 +50,7 @@ class ScheduledTaskBlock extends StatelessWidget {
               fontWeight: FontWeight.bold,
               decoration: checked ? TextDecoration.lineThrough : null,
             ),
+            child: Text(subTask.name, softWrap: true),
           ),
         ),
       ],
@@ -60,8 +61,11 @@ class ScheduledTaskBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = scheduledTask.status;
     final statusColor = status.color;
+    final completed = scheduledTask.completed;
 
-    return Container(
+    return AnimatedContainer(
+      duration: AnimationDurations.fast,
+      curve: CadenceMotion.enter,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(width: 0.5, color: statusColor),
@@ -78,12 +82,11 @@ class ScheduledTaskBlock extends StatelessWidget {
                     SizedBox(
                       width: 24,
                       height: 24,
-                      child: Checkbox(
-                        value: scheduledTask.completed,
-                        onChanged: (value) => onCheckTask(value ?? false),
+                      child: AnimatedCheckbox(
+                        value: completed,
+                        onChanged: onCheckTask,
                         side: BorderSide(color: statusColor),
                         activeColor: CadenceColors.accent,
-                        checkColor: CadenceColors.black,
                       ),
                     ),
 
@@ -126,13 +129,20 @@ class ScheduledTaskBlock extends StatelessWidget {
                             child: Row(
                               children: [
                                 Flexible(
-                                  child: Text(
-                                    scheduledTask.name,
+                                  child: AnimatedDefaultTextStyle(
+                                    duration: AnimationDurations.fast,
+                                    curve: CadenceMotion.enter,
                                     style: GoogleFonts.jetBrainsMono(
-                                      color: CadenceColors.textPrimary,
+                                      color: completed
+                                          ? CadenceColors.textSecondary
+                                          : CadenceColors.textPrimary,
                                       fontSize: 14,
-                                      fontWeight: FontWeight(1000),
+                                      fontWeight: FontWeight.w900,
+                                      decoration: completed
+                                          ? TextDecoration.lineThrough
+                                          : null,
                                     ),
+                                    child: Text(scheduledTask.name),
                                   ),
                                 ),
                                 const SizedBox(width: 6),

@@ -30,12 +30,23 @@ class LibraryEmptyNoteState extends State<LibraryEmptyNote>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
+    );
 
     _animation = Tween<double>(
       begin: 0,
       end: 12,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+      _controller.value = 0;
+      return;
+    }
+    if (!_controller.isAnimating) _controller.repeat(reverse: true);
   }
 
   @override
@@ -58,11 +69,7 @@ class LibraryEmptyNoteState extends State<LibraryEmptyNote>
                   shape: BoxShape.circle,
                   border: Border.all(color: CadenceColors.border),
                 ),
-                child: Icon(
-                  Icons.radar,
-                  size: 48,
-                  color: CadenceColors.border,
-                ),
+                child: Icon(Icons.radar, size: 48, color: CadenceColors.border),
               ),
 
               const SizedBox(height: 24),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/utils/DateTime/date_time_extension.dart';
+import 'package:cadence/utils/animations.dart';
 
 class DayPicker extends StatelessWidget {
   DayPicker({
@@ -35,40 +36,51 @@ class DayPicker extends StatelessWidget {
     });
   }
 
-  Widget _buildDayField(String day, int dayNum, bool isSelected) {
+  Widget _buildDayField(
+    BuildContext context,
+    String day,
+    int dayNum,
+    bool isSelected,
+  ) {
     final color = isSelected
         ? CadenceColors.accent
         : CadenceColors.textSecondary;
+    final shadows = isSelected
+        ? const [Shadow(color: CadenceColors.accent, blurRadius: 32)]
+        : const <Shadow>[];
 
-    final List<Shadow> shadows = isSelected
-        ? [Shadow(color: CadenceColors.accent, blurRadius: 32)]
-        : [];
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    final motion = CadenceMotion.of(context, AnimationDurations.fast);
+    return AnimatedContainer(
+      duration: motion,
+      curve: CadenceMotion.enter,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         border: isSelected ? Border.all(color: CadenceColors.accent) : null,
         borderRadius: BorderRadius.circular(5),
       ),
       child: Column(
         children: [
-          Text(
-            day,
+          AnimatedDefaultTextStyle(
+            duration: motion,
+            curve: CadenceMotion.enter,
             style: GoogleFonts.jetBrainsMono(
               color: color,
               fontSize: 10,
               fontWeight: FontWeight.bold,
               shadows: shadows,
             ),
+            child: Text(day),
           ),
-          Text(
-            dayNum.toString(),
+          AnimatedDefaultTextStyle(
+            duration: motion,
+            curve: CadenceMotion.enter,
             style: GoogleFonts.jetBrainsMono(
               color: color,
               fontSize: 18,
               fontWeight: FontWeight.bold,
               shadows: shadows,
             ),
+            child: Text(dayNum.toString()),
           ),
         ],
       ),
@@ -124,14 +136,7 @@ class DayPicker extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => _selectDate(context),
                   behavior: HitTestBehavior.opaque,
-                  child: Text(
-                    'WEEK ${selectedDay.weekOfYear().toString()} // ${DateFormat('EEEE, d/MM/yyyy').format(selectedDay).toUpperCase()}',
-                    style: GoogleFonts.jetBrainsMono(
-                      color: CadenceColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _WeekHeader(selectedDay: selectedDay),
                 ),
               ),
             ),
@@ -150,34 +155,88 @@ class DayPicker extends StatelessWidget {
 
         const SizedBox(height: 25),
 
-        Row(
-          spacing: 25,
-          children: [
-            Expanded(
-              child: Row(
-                spacing: 5,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  for (final dayData in availableDays)
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => {onDaySelected(dayData['fullDate'])},
-                        behavior: HitTestBehavior.opaque,
-                        child: _buildDayField(
-                          dayData['day'],
-                          dayData['dayNum'],
-                          dayData['isSelected'],
+        CadenceValueSwitcher(
+          value: selectedDay.subtract(Duration(days: selectedDay.weekday - 1)),
+          directionOf: (previous, next) => next.isAfter(previous) ? 1 : -1,
+          slideFraction: 0.12,
+          builder: (_) => Row(
+            spacing: 25,
+            children: [
+              Expanded(
+                child: Row(
+                  spacing: 5,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (final dayData in availableDays)
+                      Expanded(
+                        child: PressScale(
+                          child: GestureDetector(
+                            onTap: () => onDaySelected(dayData['fullDate']),
+                            behavior: HitTestBehavior.opaque,
+                            child: _buildDayField(
+                              context,
+                              dayData['day'],
+                              dayData['dayNum'],
+                              dayData['isSelected'],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
 
         const SizedBox(height: 25),
       ],
+    );
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  const _WeekHeader({required this.selectedDay});
+
+  final DateTime selectedDay;
+
+  static final _dateFormat = DateFormat('EEEE, d/MM/yyyy');
+
+  static final _style = GoogleFonts.jetBrainsMono(
+    color: CadenceColors.textPrimary,
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+  );
+
+  static DateTime _weekStart(DateTime day) {
+    return day.subtract(Duration(days: day.weekday - 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CadenceValueSwitcher(
+      value: _weekStart(selectedDay),
+      directionOf: (previous, next) => next.isAfter(previous) ? 1 : -1,
+      slideFraction: 0.2,
+      builder: (_) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Align(
+            alignment: AlignmentGeometry.centerRight,
+            child: Text('WEEK ${selectedDay.weekOfYear()} // ', style: _style),
+          ),
+          Align(
+            alignment: AlignmentGeometry.centerLeft,
+            child: CadenceValueSwitcher(
+              value: selectedDay,
+              directionOf: (previous, next) => next.isAfter(previous) ? 1 : -1,
+              slideFraction: 0.35,
+              builder: (day) =>
+                  Text(_dateFormat.format(day).toUpperCase(), style: _style),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

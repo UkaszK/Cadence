@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/animations.dart';
 
 enum CadenceChoiceChipBarStyle { filled, outlined }
 
@@ -167,35 +168,45 @@ class _OptionContainer<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(3),
-      child: InkWell(
-        onTap: onSelect,
-        borderRadius: BorderRadius.circular(3),
-        child: Ink(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            border: Border.all(color: borderColor),
-            color: backgroundColor,
+    return PressScale(
+      child: AnimatedContainer(
+        duration: CadenceMotion.of(context, AnimationDurations.fast),
+        curve: CadenceMotion.enter,
+        decoration: BoxDecoration(
+          border: Border.all(color: borderColor),
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(3),
+          child: InkWell(
+            onTap: onSelect,
             borderRadius: BorderRadius.circular(3),
-          ),
-          child: Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 12, color: textColor),
-                const SizedBox(width: 5),
-              ],
-
-              Text(
-                label.toUpperCase(),
-                style: GoogleFonts.jetBrainsMono(
-                  color: textColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Row(
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 12, color: textColor),
+                    const SizedBox(width: 5),
+                  ],
+                  AnimatedDefaultTextStyle(
+                    duration: CadenceMotion.of(
+                      context,
+                      AnimationDurations.fast,
+                    ),
+                    curve: CadenceMotion.enter,
+                    style: GoogleFonts.jetBrainsMono(
+                      color: textColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    child: Text(label.toUpperCase()),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/utils/animations.dart';
 
 class CadenceButton extends StatelessWidget {
   const CadenceButton({
@@ -47,62 +48,64 @@ class CadenceButton extends StatelessWidget {
               primaryColor.withValues(alpha: 0.5)
         : borderColor ?? primaryColor;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: borderRadius,
-        boxShadow: glow
-            ? [
-                BoxShadow(
-                  color: updatedPrimaryColor.withValues(alpha: 0.3),
-                  blurRadius: 5,
-                  blurStyle: BlurStyle.outer,
-                ),
-              ]
-            : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: borderRadius,
-        child: InkWell(
-          onTap: disabled ? null : onPress,
+    return PressScale(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
           borderRadius: borderRadius,
-          child: Ink(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: updatedBackgroundColor,
-              borderRadius: borderRadius,
-              border: Border.all(color: updatedBorderColor),
-            ),
-            child: Row(
-              mainAxisSize: expandHorizontally
-                  ? MainAxisSize.max
-                  : MainAxisSize.min,
-              mainAxisAlignment: .center,
-              children: [
-                if (prefixIcon != null) ...[
-                  Icon(
-                    prefixIcon,
-                    color: updatedPrimaryColor,
-                    size: fontSize + 2.0,
+          boxShadow: glow
+              ? [
+                  BoxShadow(
+                    color: updatedPrimaryColor.withValues(alpha: 0.3),
+                    blurRadius: 5,
+                    blurStyle: BlurStyle.outer,
                   ),
-                  const SizedBox(width: 5),
-                ],
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: borderRadius,
+          child: InkWell(
+            onTap: disabled ? null : onPress,
+            borderRadius: borderRadius,
+            child: Ink(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: updatedBackgroundColor,
+                borderRadius: borderRadius,
+                border: Border.all(color: updatedBorderColor),
+              ),
+              child: Row(
+                mainAxisSize: expandHorizontally
+                    ? MainAxisSize.max
+                    : MainAxisSize.min,
+                mainAxisAlignment: .center,
+                children: [
+                  if (prefixIcon != null) ...[
+                    Icon(
+                      prefixIcon,
+                      color: updatedPrimaryColor,
+                      size: fontSize + 2.0,
+                    ),
+                    const SizedBox(width: 5),
+                  ],
 
-                Text(
-                  label,
-                  style: GoogleFonts.jetBrainsMono(
-                    color: updatedPrimaryColor,
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
+                  Text(
+                    label,
+                    style: GoogleFonts.jetBrainsMono(
+                      color: updatedPrimaryColor,
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
 
-                if (suffixIcon != null) ...[
-                  const SizedBox(width: 5),
-                  Icon(suffixIcon, color: primaryColor, size: fontSize + 2.0),
+                  if (suffixIcon != null) ...[
+                    const SizedBox(width: 5),
+                    Icon(suffixIcon, color: primaryColor, size: fontSize + 2.0),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

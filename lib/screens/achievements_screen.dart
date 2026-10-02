@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/utils/animations.dart';
 import 'package:cadence/data/gamification_metrics.dart';
 import 'package:cadence/providers/achievement_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
@@ -124,10 +125,16 @@ class _BadgeGrid extends StatelessWidget {
           mainAxisSpacing: 12,
           childAspectRatio: 1.05,
           children: [
-            for (final achievement in metrics.achievements)
-              AchievementBadgeTile(
-                achievement: achievement,
-                onTap: () => showAchievementDetailSheet(context, achievement),
+            for (var i = 0; i < metrics.achievements.length; i++)
+              FadeInTransition(
+                delay: Duration(milliseconds: 30 * i.clamp(0, 8)),
+                child: AchievementBadgeTile(
+                  achievement: metrics.achievements[i],
+                  onTap: () => showAchievementDetailSheet(
+                    context,
+                    metrics.achievements[i],
+                  ),
+                ),
               ),
           ],
         ),
