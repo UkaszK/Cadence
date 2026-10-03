@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/day.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
+import 'package:cadence/data/day.dart';
+import 'package:cadence/theme/cadence_colors.dart';
 
 class FormDaySelector extends StatefulWidget {
   const FormDaySelector({
@@ -39,9 +39,9 @@ class _FormDaySelectorState extends State<FormDaySelector> {
       borderRadius: BorderRadius.circular(5),
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? QuestLogColors.otherAccent : Colors.transparent,
+          color: isSelected ? CadenceColors.otherAccent : Colors.transparent,
           borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: QuestLogColors.border),
+          border: Border.all(color: CadenceColors.border),
         ),
         child: SizedBox(
           width: 32,
@@ -51,7 +51,7 @@ class _FormDaySelectorState extends State<FormDaySelector> {
               textAlign: TextAlign.center,
               day.label[0],
               style: GoogleFonts.jetBrainsMono(
-                color: isSelected ? Colors.black : QuestLogColors.textSecondary,
+                color: isSelected ? Colors.black : CadenceColors.textSecondary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -70,9 +70,9 @@ class _FormDaySelectorState extends State<FormDaySelector> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quest Frequency',
+            'ON WEEKDAYS',
             style: GoogleFonts.jetBrainsMono(
-              color: QuestLogColors.textSecondary,
+              color: CadenceColors.textSecondary,
               fontSize: 12,
             ),
           ),

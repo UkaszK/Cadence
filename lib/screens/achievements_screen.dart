@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:questlog/data/gamification_metrics.dart';
-import 'package:questlog/providers/achievement_providers.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/achievements_screen/achievement_badge_tile.dart';
-import 'package:questlog/widgets/achievements_screen/achievement_detail_sheet.dart';
-import 'package:questlog/widgets/achievements_screen/streak_card.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
-import 'package:questlog/widgets/quest_log_loading_screen.dart';
-import 'package:questlog/widgets/reusables/quest_log_new_screen_container.dart';
-import 'package:questlog/widgets/reusables/quest_log_section_header.dart';
+import 'package:cadence/utils/animations.dart';
+import 'package:cadence/data/gamification_metrics.dart';
+import 'package:cadence/providers/achievement_providers.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/achievements_screen/achievement_badge_tile.dart';
+import 'package:cadence/widgets/achievements_screen/achievement_detail_sheet.dart';
+import 'package:cadence/widgets/achievements_screen/streak_card.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/widgets/cadence_loading_screen.dart';
+import 'package:cadence/widgets/reusables/cadence_new_screen_container.dart';
+import 'package:cadence/widgets/reusables/cadence_section_header.dart';
 
 class AchievementsScreen extends ConsumerWidget {
   const AchievementsScreen({super.key});
@@ -20,7 +21,7 @@ class AchievementsScreen extends ConsumerWidget {
     final gamificationAsync = ref.watch(gamificationStateProvider);
 
     return gamificationAsync.when(
-      data: (metrics) => QuestLogNewScreenContainer(
+      data: (metrics) => CadenceNewScreenContainer(
         spacing: 25,
         children: [
           _Header(metrics: metrics),
@@ -30,7 +31,7 @@ class AchievementsScreen extends ConsumerWidget {
       ),
       error: (error, stack) =>
           Scaffold(body: Center(child: Text('Error loading: $error'))),
-      loading: () => const Scaffold(body: QuestLogLoadingScreen()),
+      loading: () => const Scaffold(body: CadenceLoadingScreen()),
     );
   }
 }
@@ -52,7 +53,7 @@ class _Header extends StatelessWidget {
               Text(
                 'ACHIEVEMENTS',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textPrimary,
+                  color: CadenceColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                 ),
@@ -77,15 +78,15 @@ class _Header extends StatelessWidget {
                     ? 0
                     : metrics.earnedBadges / metrics.totalBadges,
                 strokeWidth: 3,
-                backgroundColor: QuestLogColors.border,
+                backgroundColor: CadenceColors.border,
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  QuestLogColors.accent,
+                  CadenceColors.accent,
                 ),
               ),
               Text(
                 '${((metrics.earnedBadges / metrics.totalBadges) * 100).round()}%',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textPrimary,
+                  color: CadenceColors.textPrimary,
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                 ),
@@ -108,10 +109,10 @@ class _BadgeGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const QuestLogSectionHeader(
+        const CadenceSectionHeader(
           title: 'BADGES',
           icon: Icons.military_tech,
-          iconColor: QuestLogColors.accent,
+          iconColor: CadenceColors.accent,
         ),
 
         const SizedBox(height: 12),
@@ -124,10 +125,16 @@ class _BadgeGrid extends StatelessWidget {
           mainAxisSpacing: 12,
           childAspectRatio: 1.05,
           children: [
-            for (final achievement in metrics.achievements)
-              AchievementBadgeTile(
-                achievement: achievement,
-                onTap: () => showAchievementDetailSheet(context, achievement),
+            for (var i = 0; i < metrics.achievements.length; i++)
+              FadeInTransition(
+                delay: Duration(milliseconds: 30 * i.clamp(0, 8)),
+                child: AchievementBadgeTile(
+                  achievement: metrics.achievements[i],
+                  onTap: () => showAchievementDetailSheet(
+                    context,
+                    metrics.achievements[i],
+                  ),
+                ),
               ),
           ],
         ),

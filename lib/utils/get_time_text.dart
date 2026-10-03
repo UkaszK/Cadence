@@ -1,4 +1,4 @@
-import 'package:questlog/utils/DateTime/date_time_extension.dart';
+import 'package:cadence/utils/DateTime/date_time_extension.dart';
 
 String getTimeText(
   DateTime start,

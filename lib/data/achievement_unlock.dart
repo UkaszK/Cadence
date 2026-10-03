@@ -7,7 +7,7 @@ part 'achievement_unlock.g.dart';
 const String achievementBackfillKey = '__backfilled__';
 
 /// Records that an achievement tier has already been announced to the user.
-/// Progress itself is always derived from quest history, never stored here.
+/// Progress itself is always derived from task and habit history, never stored here.
 @collection
 class AchievementUnlock {
   AchievementUnlock({required this.key, required this.unlockedAt});

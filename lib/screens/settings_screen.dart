@@ -10,7 +10,7 @@ class SettingsScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'QuestLog',
+            'Cadence',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ],

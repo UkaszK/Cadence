@@ -1,7 +1,8 @@
-import 'package:questlog/data/assembler_main_quest.dart';
-import 'package:questlog/data/assembler_side_quest.dart';
-import 'package:questlog/data/day.dart';
-import 'package:questlog/data/side_quest.dart';
+import 'package:cadence/data/day.dart';
+import 'package:cadence/data/habit.dart';
+import 'package:cadence/data/habit_occurrence.dart';
+import 'package:cadence/data/scheduled_task.dart';
+import 'package:cadence/utils/habit_schedule.dart';
 
 enum AnalyticsRange {
   week(days: 7, label: '7D'),
@@ -74,12 +75,12 @@ class CategoryStat {
 
 class HabitStat {
   const HabitStat({
-    required this.sideQuest,
+    required this.habit,
     required this.done,
     required this.scheduled,
   });
 
-  final SideQuest sideQuest;
+  final Habit habit;
   final int done;
   final int scheduled;
 
@@ -178,27 +179,25 @@ class _Counter {
 AnalyticsMetrics computeAnalytics({
   required AnalyticsRange range,
   required DateTime today,
-  required List<AssemblerMainQuest> mainQuests,
-  required List<AssemblerSideQuest> sideQuestCompletions,
-  required List<SideQuest> sideQuests,
+  required List<ScheduledTask> scheduledTasks,
+  required List<HabitOccurrence> habitOccurrences,
+  required List<Habit> habits,
 }) {
   final endDate = _dateOnly(today);
   final startDate = endDate.subtract(Duration(days: range.days - 1));
 
   // Index source data by day.
-  final mainQuestsByDay = <DateTime, List<AssemblerMainQuest>>{};
-  for (final quest in mainQuests) {
-    mainQuestsByDay
-        .putIfAbsent(_dateOnly(quest.startTime), () => [])
-        .add(quest);
+  final tasksByDay = <DateTime, List<ScheduledTask>>{};
+  for (final task in scheduledTasks) {
+    tasksByDay.putIfAbsent(_dateOnly(task.startTime), () => []).add(task);
   }
 
-  final sideCompletionsByDay = <DateTime, List<AssemblerSideQuest>>{};
-  for (final completion in sideQuestCompletions) {
-    if (!completion.completed) continue;
-    sideCompletionsByDay
-        .putIfAbsent(_dateOnly(completion.occurrenceDate), () => [])
-        .add(completion);
+  final habitCompletionsByDay = <DateTime, List<HabitOccurrence>>{};
+  for (final occurrence in habitOccurrences) {
+    if (!occurrence.completed) continue;
+    habitCompletionsByDay
+        .putIfAbsent(_dateOnly(occurrence.occurrenceDate), () => [])
+        .add(occurrence);
   }
 
   // Range aggregation.
@@ -209,7 +208,7 @@ AnalyticsMetrics computeAnalytics({
 
   final categoryCounters = <String, _Counter>{};
   final habitCounters = <int, _Counter>{
-    for (final sq in sideQuests) sq.id: _Counter(),
+    for (final habit in habits) habit.id: _Counter(),
   };
   final weekdayCounters = <Day, _Counter>{
     for (final d in Day.values) d: _Counter(),
@@ -221,67 +220,65 @@ AnalyticsMetrics computeAnalytics({
   for (var i = 0; i < range.days; i++) {
     final date = startDate.add(Duration(days: i));
     final weekday = Day.fromDateTime(date);
-    final dayMainQuests = mainQuestsByDay[date] ?? const [];
-    final dayCompletions = sideCompletionsByDay[date] ?? const [];
+    final dayTasks = tasksByDay[date] ?? const [];
+    final dayCompletions = habitCompletionsByDay[date] ?? const [];
 
     var dayDone = 0;
     var dayPlanned = 0;
     var dayFocus = 0;
 
-    for (final quest in dayMainQuests) {
+    for (final task in dayTasks) {
       dayPlanned++;
       final category = categoryCounters.putIfAbsent(
-        quest.questCategoryName,
+        task.categoryName,
         () => _Counter(),
       );
       category.planned++;
-      final window = windowCounters[DayWindow.fromDateTime(quest.startTime)]!;
+      final window = windowCounters[DayWindow.fromDateTime(task.startTime)]!;
       window.planned++;
 
-      if (quest.completed) {
+      if (task.completed) {
         dayDone++;
-        dayFocus += quest.durationInMinutes;
+        dayFocus += task.durationInMinutes;
         category.done++;
         window.done++;
       }
     }
 
-    final completedSideQuestIds = dayCompletions
-        .map((c) => c.sideQuestId)
-        .toSet();
-    final scheduledIds = <int>{};
+    final completedHabitIds = dayCompletions.map((c) => c.habitId).toSet();
+    final expectedIds = <int>{};
 
-    for (final sideQuest in sideQuests) {
-      if (!sideQuest.repeatDays.contains(weekday)) continue;
-      scheduledIds.add(sideQuest.id);
+    for (final habit in habits) {
+      if (!isHabitExpectedOn(habit, date)) continue;
+      expectedIds.add(habit.id);
       dayPlanned++;
-      habitCounters[sideQuest.id]!.planned++;
+      habitCounters[habit.id]!.planned++;
       final category = categoryCounters.putIfAbsent(
-        sideQuest.questCategoryName,
+        habit.categoryName,
         () => _Counter(),
       );
       category.planned++;
 
-      if (completedSideQuestIds.contains(sideQuest.id)) {
+      if (completedHabitIds.contains(habit.id)) {
         dayDone++;
-        habitCounters[sideQuest.id]!.done++;
+        habitCounters[habit.id]!.done++;
         category.done++;
       }
     }
 
-    // Completions for habits not scheduled that day (or since archived)
+    // Completions for habits not expected that day (or since archived)
     // still count as done work; count them as planned too so rate <= 100%.
     for (final completion in dayCompletions) {
-      if (scheduledIds.contains(completion.sideQuestId)) continue;
+      if (expectedIds.contains(completion.habitId)) continue;
       dayDone++;
       dayPlanned++;
       final category = categoryCounters.putIfAbsent(
-        completion.questCategoryName,
+        completion.categoryName,
         () => _Counter(),
       );
       category.planned++;
       category.done++;
-      final habit = habitCounters[completion.sideQuestId];
+      final habit = habitCounters[completion.habitId];
       if (habit != null) {
         habit.planned++;
         habit.done++;
@@ -308,9 +305,9 @@ AnalyticsMetrics computeAnalytics({
 
   // Streaks are computed over full history, not just the selected range.
   final activeDays = <DateTime>{
-    for (final entry in mainQuestsByDay.entries)
-      if (entry.value.any((q) => q.completed)) entry.key,
-    ...sideCompletionsByDay.keys,
+    for (final entry in tasksByDay.entries)
+      if (entry.value.any((t) => t.completed)) entry.key,
+    ...habitCompletionsByDay.keys,
   };
   final (currentStreak, bestStreak) = _computeStreaks(activeDays, endDate);
 
@@ -332,13 +329,13 @@ AnalyticsMetrics computeAnalytics({
           return byDone != 0 ? byDone : b.planned.compareTo(a.planned);
         });
 
-  final habits =
-      sideQuests
+  final habitStats =
+      habits
           .map(
-            (sideQuest) => HabitStat(
-              sideQuest: sideQuest,
-              done: habitCounters[sideQuest.id]!.done,
-              scheduled: habitCounters[sideQuest.id]!.planned,
+            (habit) => HabitStat(
+              habit: habit,
+              done: habitCounters[habit.id]!.done,
+              scheduled: habitCounters[habit.id]!.planned,
             ),
           )
           .where((habit) => habit.scheduled > 0)
@@ -376,7 +373,7 @@ AnalyticsMetrics computeAnalytics({
     currentStreak: currentStreak,
     bestStreak: bestStreak,
     categories: categories,
-    habits: habits,
+    habits: habitStats,
     weekdays: weekdays,
     windows: windows,
   );

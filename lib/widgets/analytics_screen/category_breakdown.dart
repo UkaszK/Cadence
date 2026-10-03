@@ -1,9 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:questlog/data/analytics_metrics.dart';
-import 'package:questlog/data/quest_categories.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/analytics_metrics.dart';
+import 'package:cadence/data/task_categories.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 class CategoryBreakdown extends StatelessWidget {
   const CategoryBreakdown({super.key, required this.metrics});
@@ -11,7 +11,7 @@ class CategoryBreakdown extends StatelessWidget {
   final AnalyticsMetrics metrics;
 
   IconData _iconFor(String categoryName) {
-    return questCategories
+    return taskCategories
             .firstWhereOrNull((c) => c.name == categoryName)
             ?.icon ??
         Icons.category;
@@ -36,13 +36,13 @@ class CategoryBreakdown extends StatelessWidget {
                 height: 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  border: Border.all(color: QuestLogColors.border),
-                  color: QuestLogColors.accentLessOpacity,
+                  border: Border.all(color: CadenceColors.border),
+                  color: CadenceColors.accentLessOpacity,
                 ),
                 child: Icon(
                   _iconFor(category.categoryName),
                   size: 14,
-                  color: QuestLogColors.accent,
+                  color: CadenceColors.accent,
                 ),
               ),
               label: category.categoryName.toUpperCase(),

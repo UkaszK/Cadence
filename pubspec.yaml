@@ -1,5 +1,5 @@
-name: questlog
-description: "QuestLog is a mobile application that merges traditional time management elements with gamification strategies. The project's core objective is to transform daily routines and tasks into engaging \"quests\" rather than simple to-do lists."
+name: cadence
+description: "Cadence is a mobile planner that pairs a task library and recurring habits with a daily timeline, so you can plan your day, track what gets done, and keep a steady rhythm."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -56,6 +56,7 @@ dev_dependencies:
   
   build_runner: ^2.4.13
   isar_generator: ^3.1.0+1
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -101,3 +102,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 21

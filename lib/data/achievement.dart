@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/utils/get_duration_hours_and_minutes.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/get_duration_hours_and_minutes.dart';
 
 /// Identifies a single achievement track. Persisted by [name], so renaming a
 /// value resets the unlock history for that achievement.
@@ -12,14 +12,14 @@ enum AchievementId {
   perfectDay,
   deepWork,
   habitHero,
-  questSlayer,
+  taskFinisher,
   weekendWarrior,
 }
 
 enum AchievementTier {
-  bronze(label: 'BRONZE', color: QuestLogColors.bronze),
-  silver(label: 'SILVER', color: QuestLogColors.silver),
-  gold(label: 'GOLD', color: QuestLogColors.gold);
+  bronze(label: 'BRONZE', color: CadenceColors.bronze),
+  silver(label: 'SILVER', color: CadenceColors.silver),
+  gold(label: 'GOLD', color: CadenceColors.gold);
 
   const AchievementTier({required this.label, required this.color});
 
@@ -129,7 +129,7 @@ class AchievementProgress {
     return ((value - floor) / (ceiling - floor)).clamp(0.0, 1.0);
   }
 
-  Color get color => tier?.color ?? QuestLogColors.textSecondary;
+  Color get color => tier?.color ?? CadenceColors.textSecondary;
 
   String get valueLabel => definition.unit.format(value);
 

@@ -1,14 +1,18 @@
+import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:questlog/providers/dashboard_providers.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/dashboard_screen/daily_progress/dashboard_daily_progress.dart';
-import 'package:questlog/widgets/dashboard_screen/scheduled_main_quests/assembler_main_quests.dart';
-import 'package:questlog/widgets/dashboard_screen/side_quests/side_quests.dart';
-import 'package:questlog/widgets/quest_log_loading_screen.dart';
-import 'package:questlog/widgets/reusables/quest_log_screen_container.dart';
+import 'package:cadence/data/scheduled_task.dart';
+import 'package:cadence/data/task.dart';
+import 'package:cadence/providers/dashboard_providers.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/dashboard_screen/daily_progress/dashboard_daily_progress.dart';
+import 'package:cadence/widgets/dashboard_screen/habits/dashboard_habits.dart';
+import 'package:cadence/widgets/dashboard_screen/plan/dashboard_plan.dart';
+import 'package:cadence/widgets/cadence_loading_screen.dart';
+import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
+import 'package:cadence/widgets/reusables/cadence_screen_container.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -27,7 +31,7 @@ class DashboardScreen extends ConsumerWidget {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.dark(
-              primary: QuestLogColors.accent,
+              primary: CadenceColors.accent,
               onPrimary: Colors.black,
               surface: Colors.black,
               onSurface: Colors.white,
@@ -43,6 +47,75 @@ class DashboardScreen extends ConsumerWidget {
     }
   }
 
+  void _showAutoArchiveSnackBar(
+    BuildContext context,
+    Task task,
+    void Function(Task) onUndo,
+  ) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor: CadenceColors.surface,
+          behavior: SnackBarBehavior.floating,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: CadenceColors.accent, width: 1),
+          ),
+          content: Row(
+            children: [
+              const Icon(Icons.archive, size: 18, color: CadenceColors.accent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'COMPLETED & ARCHIVED',
+                      style: GoogleFonts.jetBrainsMono(
+                        color: CadenceColors.textSecondary,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      task.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.jetBrainsMono(
+                        color: CadenceColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'UNDO',
+            textColor: CadenceColors.accent,
+            onPressed: () => onUndo(task),
+          ),
+        ),
+      );
+  }
+
+  Future<void> _editScheduledTaskDetails(
+    BuildContext context,
+    ScheduledTask scheduledTask,
+    DashboardViewStateNotifier notifier,
+  ) async {
+    final details = await showEditScheduledTaskSheet(context, scheduledTask);
+    if (details == null) return;
+    notifier.updateScheduledTaskDetails(
+      scheduledTask,
+      name: details.name,
+      subTasks: details.subTasks,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(dashboardViewStateNotifierProvider.notifier);
@@ -52,40 +125,95 @@ class DashboardScreen extends ConsumerWidget {
 
     return dashboardStateAsync.when(
       data: (state) {
-        return QuestLogScreenContainer(
+        return CadenceScreenContainer(
           spacing: 25,
           children: [
-            _Header(
-              selectedDay: selectedDay,
-              leftAction: () => notifier.shiftDay(-1),
-              rightAction: () => notifier.shiftDay(1),
-              onClickDate: () =>
-                  _selectDate(context, selectedDay, notifier.setDay),
+            FadeInTransition(
+              delay: Duration.zero,
+              child: _Header(
+                selectedDay: selectedDay,
+                leftAction: () => notifier.shiftDay(-1),
+                rightAction: () => notifier.shiftDay(1),
+                onClickDate: () =>
+                    _selectDate(context, selectedDay, notifier.setDay),
+              ),
             ),
-
-            DashboardDailyProgress(progress: state.progress),
-
-            AssemblerMainQuests(
-              assemblerMainQuests: state.assemblerMainQuests,
-              onCheckAssemblerMainQuest: notifier.checkAssemblerMainQuest,
-              onCheckSubTask: notifier.checkSubTask,
+            FadeInTransition(
+              delay: const Duration(milliseconds: 100),
+              child: DashboardDailyProgress(progress: state.progress),
             ),
-
-            SideQuests(
-              sideQuests: state.sideQuests,
-              completedSideQuestIds: state.completedSideQuestIds,
-              onCheckSideQuest: (sideQuest, newValue) =>
-                  notifier.checkSideQuest(
-                    sideQuest,
-                    newValue,
-                    state.assemblerSideQuests,
-                  ),
+            FadeInTransition(
+              delay: const Duration(milliseconds: 150),
+              child: CadenceValueSwitcher(
+                value: DateTime(
+                  selectedDay.year,
+                  selectedDay.month,
+                  selectedDay.day,
+                ),
+                directionOf: (previous, next) =>
+                    next.isAfter(previous) ? 1 : -1,
+                slideFraction: 0.03,
+                builder: (_) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 25,
+                  children: [
+                    DashboardPlan(
+                      scheduledTasks: state.scheduledTasks,
+                      placedHabits: state.placedHabits,
+                      onCheckScheduledTask: (scheduledTask, newValue) {
+                        final archived = notifier.checkScheduledTask(
+                          scheduledTask,
+                          newValue,
+                        );
+                        if (archived != null) {
+                          _showAutoArchiveSnackBar(
+                            context,
+                            archived,
+                            notifier.undoAutoArchive,
+                          );
+                        }
+                      },
+                      onCheckSubTask: (scheduledTask, subTask, newValue) {
+                        final archived = notifier.checkSubTask(
+                          scheduledTask,
+                          subTask,
+                          newValue,
+                        );
+                        if (archived != null) {
+                          _showAutoArchiveSnackBar(
+                            context,
+                            archived,
+                            notifier.undoAutoArchive,
+                          );
+                        }
+                      },
+                      onCheckHabitOccurrence: notifier.checkHabitOccurrence,
+                      onEditScheduledTask: (scheduledTask) =>
+                          _editScheduledTaskDetails(
+                            context,
+                            scheduledTask,
+                            notifier,
+                          ),
+                    ),
+                    DashboardHabits(
+                      expectedHabits: state.expectedHabits,
+                      completedHabitIds: state.completedHabitIds,
+                      dayOccurrences: state.habitOccurrences,
+                      onCheckHabit: (habit, newValue) => notifier.checkHabit(
+                        habit,
+                        newValue,
+                        state.habitOccurrences,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         );
       },
       error: (error, stack) => Center(child: Text('Error loading: $error')),
-      loading: () => QuestLogLoadingScreen(),
+      loading: () => CadenceLoadingScreen(),
     );
   }
 }
@@ -118,7 +246,7 @@ class _Header extends StatelessWidget {
               Text(
                 'DASHBOARD',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textPrimary,
+                  color: CadenceColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                 ),
@@ -127,7 +255,7 @@ class _Header extends StatelessWidget {
               Text(
                 'DAILY OVERVIEW',
                 style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textSecondary,
+                  color: CadenceColors.textSecondary,
                   fontSize: 10,
                 ),
               ),
@@ -140,12 +268,22 @@ class _Header extends StatelessWidget {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: onClickDate,
-              child: Text(
-                _dayFormat.format(selectedDay).toUpperCase(),
-                style: GoogleFonts.jetBrainsMono(
-                  color: QuestLogColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+              child: CadenceValueSwitcher(
+                value: DateTime(
+                  selectedDay.year,
+                  selectedDay.month,
+                  selectedDay.day,
+                ),
+                directionOf: (previous, next) =>
+                    next.isAfter(previous) ? 1 : -1,
+                slideFraction: 0.35,
+                builder: (day) => Text(
+                  _dayFormat.format(day).toUpperCase(),
+                  style: GoogleFonts.jetBrainsMono(
+                    color: CadenceColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -166,17 +304,19 @@ class _DayNavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 20,
-        height: 20,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          border: Border.all(color: QuestLogColors.border, width: 1),
+    return PressScale(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: CadenceColors.border, width: 1),
+          ),
+          child: Icon(icon, size: 14, color: CadenceColors.textSecondary),
         ),
-        child: Icon(icon, size: 14, color: QuestLogColors.textSecondary),
       ),
     );
   }

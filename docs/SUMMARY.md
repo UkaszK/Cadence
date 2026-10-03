@@ -1,10 +1,10 @@
-# QuestLog – Projektübersicht
+# Cadence – Projektübersicht
 
 ## Zweck
 
-QuestLog ist eine mobile Flutter-App für die Planung des Tages und die Auswertung von Routinen. Aufgaben werden als Quests organisiert und mit spielerischen Elementen wie Main Quests, Side Quests, Streaks und Achievements verbunden.
+Cadence ist eine mobile Flutter-App für die Planung des Tages und die Auswertung von Routinen. Arbeit wird in einer Bibliothek aus **Tasks** (Aufgaben) und **Habits** (Gewohnheiten) verwaltet. Pro Tag entsteht daraus ein **Plan** auf einer Zeitleiste; Streaks und Achievements ergänzen den Alltag um einen gleichmäßigen Rhythmus.
 
-Die App arbeitet lokal auf dem Gerät. Aufgaben, Tagesplanung, Fortschritt und freigeschaltete Achievements werden in einer lokalen Isar-Datenbank gespeichert.
+Die App arbeitet lokal auf dem Gerät. Aufgaben, Gewohnheiten, Tagesplanung, Fortschritt und freigeschaltete Achievements werden in einer lokalen Isar-Datenbank gespeichert.
 
 ## Technischer Aufbau
 
@@ -28,52 +28,74 @@ Die App arbeitet lokal auf dem Gerät. Aufgaben, Tagesplanung, Fortschritt und f
 
 ## Benutzeroberfläche
 
+### Primär genutzte Farben
+
+Die zentralen Farbwerte sind in `lib/theme/cadence_colors.dart` definiert:
+
+| Farbe | Hex-Wert | Verwendung |
+| --- | --- | --- |
+| Cyan | `#6FEEFC` | Primärer Akzent, Hervorhebungen und interaktive Elemente |
+| Rosa | `#F3B0E5` | Sekundärer Akzent, etwa für Habits und ergänzende Hervorhebungen |
+| Dunkler Hintergrund | `#141218` | Globaler App-Hintergrund |
+| Oberfläche | `#1D1C1C` | Karten und weitere UI-Flächen |
+| Rand | `#353534` | Trennlinien und Umrandungen |
+| Primärtext | `#FFFFFF` | Haupttexte und Icons |
+| Sekundärtext | `#B3FFFFFF` | Zurückhaltende Texte und Beschriftungen |
+
+### App-Icon
+
+Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tages:
+
+- Die durchgehende Wellenlinie steht für den fortlaufenden Rhythmus von Routinen und die Zeitleiste des Tagesplans.
+- Knotenpunkte markieren konkrete Tasks und Habits, die im Planner Zeitfenstern zugeordnet werden.
+- Der Farbverlauf verbindet das Akzent-Cyan mit dem Habit-Rosa und symbolisiert, wie einmalige Aufgaben und feste Gewohnheiten auf der täglichen Zeitleiste ineinandergreifen.
+
 ### Hauptnavigation
 
-- **Dashboard:** Tagesansicht mit Datumsauswahl, täglichem Fortschritt, geplanten Main Quests und Side Quests.
-- **Assembler:** Visuelle Tagesplanung über Zeitblöcke. Main Quests können einem Zeitfenster zugeordnet, bearbeitet oder entfernt werden. Überschneidungen werden erkannt.
+- **Dashboard:** Tagesansicht mit Datumsauswahl, täglichem Fortschritt, dem Plan des Tages (geplante Tasks und platzierte Habits in zeitlicher Reihenfolge) sowie einer Habit-Checkliste aller an diesem Tag erwarteten Gewohnheiten. Tasks mit Fälligkeitsdatum werden nach Abschluss automatisch archiviert (mit Undo).
+- **Planner:** Visuelle Tagesplanung über Zeitblöcke. Tasks und erwartete Habits können einem Zeitfenster zugeordnet, verschoben oder entfernt werden. Überschneidungen werden erkannt.
 - **Analytics:** Auswertungen für einen wählbaren Zeitraum mit Kennzahlen und Diagrammen.
-- **Backlog:** Sammlung nicht archivierter Quests, gruppiert nach Kategorien und filterbar nach Quest-Typ, Priorität und Fälligkeit.
+- **Library:** Tasks und Habits in getrennten Tabs, gruppiert nach Kategorien. Tasks sind filterbar (alle, hohe Priorität, heute fällig, einmalig); archivierte Einträge lassen sich einblenden und wiederherstellen.
 
 ### Weitere Screens und UI-Bausteine
 
-- **Quest-Formular:** Erstellen von Main Quests und Side Quests mit Titel, Notizen, Kategorie, Priorität, Dauer, Fälligkeit, Wiederholung und Unteraufgaben.
+- **Task-Formular:** Titel, Kategorie, Dauer, optionales Fälligkeitsdatum, Priorität und Unteraufgaben.
+- **Habit-Formular:** Titel, Kategorie, Dauer und Zeitplan – entweder an ausgewählten Wochentagen oder alle N Tage ab einem Startdatum.
 - **Achievements:** Übersicht der Badges, Fortschrittsanzeige und Streak-Darstellung.
-- **Auswahl bestehender Main Quests:** Auswahl eines bestehenden Quest-Eintrags für die Tagesplanung.
 - **Settings:** Vorbereiteter Einstellungs-Screen.
-- Wiederverwendbare Komponenten für App-Bar, Navigation, Buttons, Dropdowns, Choice Chips, Badges, Ladezustände und Screen-Container.
+- Wiederverwendbare Komponenten für App-Bar, Navigation, FAB, Buttons, Dropdowns, Choice Chips, Switches, Badges, Ladezustände und Screen-Container.
 
 ## Domänenmodell
 
 ### Persistente Isar-Collections
 
-- `MainQuest`: größere oder priorisierte Aufgaben mit Status, Kategorie, Priorität, Fälligkeit, Dauer, Notizen und Archivstatus.
-- `SideQuest`: kleinere oder wiederkehrende Aufgaben mit Kategorie, Wiederholung und Archivstatus.
-- `AssemblerMainQuest`: geplante Main Quest mit Start- und Endzeit sowie Tagesbezug.
-- `AssemblerSideQuest`: Tageszuordnung und Fortschritt einer Side Quest.
+- `Task`: Aufgabe mit Kategorie, Priorität, Dauer, optionaler Fälligkeit (einmalig), Unteraufgaben und Archivstatus. Ohne Fälligkeit ist eine Aufgabe wiederverwendbar.
+- `Habit`: Gewohnheit mit Kategorie, Dauer, Zeitplan (`weekdays` mit Wochentagen oder `interval` mit N Tagen und Ankerdatum) und Archivstatus.
+- `ScheduledTask`: Zeitblock einer Aufgabe im Plan eines Tages, inklusive Unteraufgaben-Fortschritt und Abschluss.
+- `HabitOccurrence`: Vorkommen einer Gewohnheit an einem Tag; optional mit Zeitfenster im Plan und Abschlusszeitpunkt.
 - `AchievementUnlock`: bereits angekündigte oder freigeschaltete Achievements mit Zeitstempel.
 
 ### Unterstützende Typen und Metriken
 
-- Kategorien, Quest-Typen, Prioritäten, Statuswerte, Tage und Filteroptionen.
-- Unteraufgaben für Main Quests.
+- Kategorien, Prioritäten, Statuswerte, Tage und Filteroptionen.
+- `isHabitExpectedOn()` entscheidet, ob eine Gewohnheit an einem Datum erwartet wird.
 - Tagesfortschritt, Analytics-Metriken und Gamification-Metriken.
 - Achievement-Katalog mit Definitionen der verfügbaren Badges.
 
-Die zugehörigen `*.g.dart`-Dateien werden aus den Isar-Annotationsklassen generiert und sollten nicht manuell bearbeitet werden.
+Die zugehörigen `*.g.dart`-Dateien werden aus den Isar-Annotationsklassen generiert, sind nicht eingecheckt und sollten nicht manuell bearbeitet werden.
 
 ## State Management und Datenfluss
 
 Die Provider liegen in `lib/providers/` und bilden die fachlichen Bereiche ab:
 
-- Quest-Streams für Main Quests, Side Quests und geplante Quests.
-- Dashboard- und Assembler-Zustand einschließlich ausgewähltem Tag und Zeitfenster.
-- Backlog-Zustand und Quest-Filter.
+- Streams für Tasks, Habits, geplante Tasks und Habit-Vorkommen (`task_providers`, `habit_providers`, `schedule_providers`).
+- Dashboard- und Planner-Zustand einschließlich ausgewähltem Tag, Zeitfenster und ausstehendem/bearbeitetem Element.
+- Library-Zustand mit Tab, Filter und Archiv-Schalter.
 - Analytics-Zeitraum und berechnete Statistiken.
 - Achievement- und Gamification-Zustand.
 - Navigation sowie Formularzustand.
 
-Die Isar-Watcher liefern Änderungen reaktiv an Riverpod. Nicht archivierte Main Quests und Side Quests werden standardmäßig über die jeweiligen Streams geladen.
+Die Isar-Watcher liefern Änderungen reaktiv an Riverpod. Nicht archivierte Tasks und Habits werden standardmäßig über die jeweiligen Streams geladen.
 
 ## Analytics und Gamification
 
@@ -82,7 +104,7 @@ Die Analytics-Ansicht enthält unter anderem:
 - Übersichtskennzahlen zum Fortschritt.
 - tägliche Abschlusszahlen.
 - Leistungsvergleich nach Wochentagen.
-- Aufschlüsselung nach Quest-Kategorien.
+- Aufschlüsselung nach Kategorien.
 - Konsistenz von Gewohnheiten.
 - Verteilung des Zeitplans.
 
@@ -95,24 +117,24 @@ Die Gamification-Auswertung berechnet Streaks, Badge-Fortschritt und freigeschal
 ├── assets/icons/          SVG-Icons für die Navigation
 ├── android/               Android-Plattformprojekt
 ├── ios/                   iOS-Plattformprojekt
+├── docs/                  SUMMARY.md und MIGRATION.md
 ├── lib/
 │   ├── data/              Isar-Modelle, Enums und Metriken
 │   ├── providers/         Riverpod-Provider und Controller
 │   ├── screens/           Vollständige Screens
-│   ├── theme/             QuestLog-Farben und Theme-Konstanten
-│   ├── utils/             Datums- und Zeit-Hilfsfunktionen
+│   ├── theme/             Cadence-Farben und Theme-Konstanten
+│   ├── utils/             Datums-, Zeit- und Zeitplan-Hilfsfunktionen
 │   ├── widgets/           Wiederverwendbare UI-Komponenten
 │   ├── app.dart           Material-App und Root-Theme
 │   └── main.dart          Initialisierung und App-Start
 ├── analysis_options.yaml  Dart- und Flutter-Linting
 ├── pubspec.yaml           Abhängigkeiten und Asset-Konfiguration
-├── README.md              Ausführliche Projekt- und Setup-Dokumentation
-└── SUMMARY.md             Diese technische Kurzreferenz
+└── README.md              Ausführliche Projekt- und Setup-Dokumentation
 ```
 
 ## Entwicklungsstatus
 
-Die Kernfunktionen für Quest-Verwaltung, Tagesplanung, Backlog, Analytics und Achievements sind im Quellcode vorhanden. Die Anwendung ist als lokale, mobile Flutter-App ausgelegt. Im Repository ist aktuell kein `test/`-Verzeichnis vorhanden; automatisierte Unit- oder Widget-Tests sind daher noch nicht dokumentiert.
+Die Kernfunktionen für Task- und Habit-Verwaltung, Tagesplanung, Library, Analytics und Achievements sind im Quellcode vorhanden. Die Anwendung ist als lokale, mobile Flutter-App ausgelegt. Im Repository ist aktuell kein `test/`-Verzeichnis vorhanden; automatisierte Unit- oder Widget-Tests sind daher noch nicht dokumentiert.
 
 ## Relevante Dateien
 

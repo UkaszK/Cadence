@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:questlog/data/analytics_metrics.dart';
-import 'package:questlog/providers/quest_providers.dart';
-import 'package:questlog/providers/side_quest_providers.dart';
+import 'package:cadence/data/analytics_metrics.dart';
+import 'package:cadence/providers/habit_providers.dart';
+import 'package:cadence/providers/schedule_providers.dart';
 
 final analyticsRangeProvider =
     NotifierProvider<AnalyticsRangeNotifier, AnalyticsRange>(
@@ -17,11 +17,11 @@ class AnalyticsRangeNotifier extends Notifier<AnalyticsRange> {
 
 final analyticsStateProvider = Provider<AsyncValue<AnalyticsMetrics>>((ref) {
   final range = ref.watch(analyticsRangeProvider);
-  final mainQuestsAsync = ref.watch(assemblerMainQuestsProvider);
-  final sideCompletionsAsync = ref.watch(assemblerSideQuestsProvider);
-  final sideQuestsAsync = ref.watch(sideQuestsProvider);
+  final tasksAsync = ref.watch(scheduledTasksProvider);
+  final occurrencesAsync = ref.watch(habitOccurrencesProvider);
+  final habitsAsync = ref.watch(habitsProvider);
 
-  final states = [mainQuestsAsync, sideCompletionsAsync, sideQuestsAsync];
+  final states = [tasksAsync, occurrencesAsync, habitsAsync];
 
   if (states.any((state) => state.isLoading)) {
     return const AsyncLoading();
@@ -35,9 +35,9 @@ final analyticsStateProvider = Provider<AsyncValue<AnalyticsMetrics>>((ref) {
     computeAnalytics(
       range: range,
       today: DateTime.now(),
-      mainQuests: mainQuestsAsync.requireValue,
-      sideQuestCompletions: sideCompletionsAsync.requireValue,
-      sideQuests: sideQuestsAsync.requireValue,
+      scheduledTasks: tasksAsync.requireValue,
+      habitOccurrences: occurrencesAsync.requireValue,
+      habits: habitsAsync.requireValue,
     ),
   );
 });

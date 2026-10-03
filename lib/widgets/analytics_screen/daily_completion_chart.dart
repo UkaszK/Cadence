@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:questlog/data/analytics_metrics.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_bar_chart.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/analytics_metrics.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_bar_chart.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 class DailyCompletionChart extends StatelessWidget {
   const DailyCompletionChart({super.key, required this.metrics});
@@ -16,7 +16,7 @@ class DailyCompletionChart extends StatelessWidget {
   bool get _groupWeekly => metrics.range == AnalyticsRange.quarter;
 
   Color _barColor(int done, int planned, bool isCurrent) {
-    if (planned == 0) return QuestLogColors.border;
+    if (planned == 0) return CadenceColors.border;
     final color = analyticsRateColor(done / planned);
     return isCurrent ? color : color.withValues(alpha: 0.75);
   }

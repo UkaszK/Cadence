@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:questlog/data/analytics_metrics.dart';
-import 'package:questlog/theme/quest_log_colors.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_bar_chart.dart';
-import 'package:questlog/widgets/analytics_screen/analytics_shared.dart';
+import 'package:cadence/data/analytics_metrics.dart';
+import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_bar_chart.dart';
+import 'package:cadence/widgets/analytics_screen/analytics_shared.dart';
 
 class WeekdayPerformanceChart extends StatelessWidget {
   const WeekdayPerformanceChart({super.key, required this.metrics});
@@ -25,7 +25,7 @@ class WeekdayPerformanceChart extends StatelessWidget {
             AnalyticsBar(
               value: weekday.rate,
               color: weekday.planned == 0
-                  ? QuestLogColors.border
+                  ? CadenceColors.border
                   : analyticsRateColor(weekday.rate),
               label: weekday.day.label.substring(0, 3).toUpperCase(),
               tooltip:
