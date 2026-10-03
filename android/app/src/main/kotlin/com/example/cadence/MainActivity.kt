@@ -1,4 +1,4 @@
-package com.example.cadence
+package de.lkapps.cadence
 
 import io.flutter.embedding.android.FlutterActivity
 
