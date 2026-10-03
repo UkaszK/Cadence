@@ -56,6 +56,17 @@ flutter build apk       # Android
 flutter build ios       # iOS on macOS with Xcode
 ```
 
+### App Icon and TestFlight Builds
+
+Launcher icons are generated from [`assets/icons/app_icon.png`](assets/icons/app_icon.png) using the configuration in [`pubspec.yaml`](pubspec.yaml):
+
+```bash
+dart run flutter_launcher_icons
+flutter build ipa --release
+```
+
+The `remove_alpha_ios: true` setting removes the alpha channel from generated iOS icons, as required by Apple. After changing or regenerating icons, build a new IPA; existing archives and IPAs still contain the old icons. Upload the newly generated IPA from `build/ios/ipa/`. Increase the build number in `pubspec.yaml` for subsequent uploads.
+
 ## Code Generation
 
 The Isar models use annotated classes to generate files such as `task.g.dart`, `habit.g.dart`, `scheduled_task.g.dart`, and `habit_occurrence.g.dart`. Run code generation again after changing an annotated data model:
