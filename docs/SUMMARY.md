@@ -28,6 +28,28 @@ Die App arbeitet lokal auf dem Gerät. Aufgaben, Gewohnheiten, Tagesplanung, For
 
 ## Benutzeroberfläche
 
+### Primär genutzte Farben
+
+Die zentralen Farbwerte sind in `lib/theme/cadence_colors.dart` definiert:
+
+| Farbe | Hex-Wert | Verwendung |
+| --- | --- | --- |
+| Cyan | `#6FEEFC` | Primärer Akzent, Hervorhebungen und interaktive Elemente |
+| Rosa | `#F3B0E5` | Sekundärer Akzent, etwa für Habits und ergänzende Hervorhebungen |
+| Dunkler Hintergrund | `#141218` | Globaler App-Hintergrund |
+| Oberfläche | `#1D1C1C` | Karten und weitere UI-Flächen |
+| Rand | `#353534` | Trennlinien und Umrandungen |
+| Primärtext | `#FFFFFF` | Haupttexte und Icons |
+| Sekundärtext | `#B3FFFFFF` | Zurückhaltende Texte und Beschriftungen |
+
+### App-Icon
+
+Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tages:
+
+- Die durchgehende Wellenlinie steht für den fortlaufenden Rhythmus von Routinen und die Zeitleiste des Tagesplans.
+- Knotenpunkte markieren konkrete Tasks und Habits, die im Planner Zeitfenstern zugeordnet werden.
+- Der Farbverlauf verbindet das Akzent-Cyan mit dem Habit-Rosa und symbolisiert, wie einmalige Aufgaben und feste Gewohnheiten auf der täglichen Zeitleiste ineinandergreifen.
+
 ### Hauptnavigation
 
 - **Dashboard:** Tagesansicht mit Datumsauswahl, täglichem Fortschritt, dem Plan des Tages (geplante Tasks und platzierte Habits in zeitlicher Reihenfolge) sowie einer Habit-Checkliste aller an diesem Tag erwarteten Gewohnheiten. Tasks mit Fälligkeitsdatum werden nach Abschluss automatisch archiviert (mit Undo).
