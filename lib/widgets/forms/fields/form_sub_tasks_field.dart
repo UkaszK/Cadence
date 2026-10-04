@@ -49,12 +49,14 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
 
   int? _editingIndex;
   bool _newFocused = false;
+  late List<UniqueKey> _itemKeys;
 
   final double subTaskFieldHeight = 40;
 
   @override
   void initState() {
     super.initState();
+    _itemKeys = List.generate(widget.items.length, (_) => UniqueKey());
 
     _newFocusNode.addListener(() {
       setState(() {
@@ -74,6 +76,21 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
   }
 
   @override
+  void didUpdateWidget(FormSubTasksField<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_itemKeys.length < widget.items.length) {
+      _itemKeys.addAll(
+        List.generate(
+          widget.items.length - _itemKeys.length,
+          (_) => UniqueKey(),
+        ),
+      );
+    } else if (_itemKeys.length > widget.items.length) {
+      _itemKeys.removeRange(widget.items.length, _itemKeys.length);
+    }
+  }
+
+  @override
   void dispose() {
     _newController.dispose();
     _editController.dispose();
@@ -86,6 +103,7 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
     final text = _newController.text.trim();
     if (text.isNotEmpty) {
       List<T> updated = [...widget.items, widget.create(text)];
+      _itemKeys.add(UniqueKey());
       widget.onChange(updated);
       _newController.clear();
     }
@@ -101,6 +119,7 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
       updated[index] = widget.rename(updated[index], text);
     } else {
       updated.removeAt(index);
+      _itemKeys.removeAt(index);
     }
 
     widget.onChange(updated);
@@ -113,6 +132,7 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
   void _deleteItem(int index) {
     List<T> updated = List.from(widget.items);
     updated.removeAt(index);
+    _itemKeys.removeAt(index);
     widget.onChange(updated);
 
     if (_editingIndex == index) {
@@ -122,12 +142,51 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
     }
   }
 
+  void _reorderItems(int oldIndex, int newIndex) {
+    if (_editingIndex != null) return;
+
+    final updated = List<T>.from(widget.items);
+    final item = updated.removeAt(oldIndex);
+    updated.insert(newIndex, item);
+
+    final key = _itemKeys.removeAt(oldIndex);
+    _itemKeys.insert(newIndex, key);
+    widget.onChange(updated);
+  }
+
   Widget _buildSavedItem(int index, T item) {
     final isEditing = _editingIndex == index;
     final label = widget.labelOf(item);
 
     return Row(
       children: [
+        if (widget.items.length > 1) ...[
+          SizedBox(
+            width: 32,
+            height: subTaskFieldHeight,
+            child: _editingIndex == null
+                ? ReorderableDragStartListener(
+                    index: index,
+                    child: const Tooltip(
+                      message: 'Drag to reorder',
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: 20,
+                        color: CadenceColors.textSecondary,
+                      ),
+                    ),
+                  )
+                : const Tooltip(
+                    message: 'Finish editing to reorder',
+                    child: Icon(
+                      Icons.drag_indicator,
+                      size: 20,
+                      color: CadenceColors.border,
+                    ),
+                  ),
+          ),
+        ],
+
         SizedBox(
           width: 20,
           height: 20,
@@ -190,10 +249,7 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
                     alignment: Alignment.centerLeft,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        width: 1,
-                        color: CadenceColors.border,
-                      ),
+                      border: Border.all(width: 1, color: CadenceColors.border),
                     ),
                     child: Text(
                       label,
@@ -298,10 +354,19 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
 
         const SizedBox(height: 12),
 
-        for (int i = 0; i < widget.items.length; i++) ...[
-          _buildSavedItem(i, widget.items[i]),
-          const SizedBox(height: 12),
-        ],
+        if (widget.items.isNotEmpty)
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: widget.items.length,
+            onReorderItem: _reorderItems,
+            itemBuilder: (context, index) => Padding(
+              key: _itemKeys[index],
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildSavedItem(index, widget.items[index]),
+            ),
+          ),
 
         _buildNewSubTaskInputField(),
       ],
