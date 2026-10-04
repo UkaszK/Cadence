@@ -104,7 +104,8 @@ class Planner extends StatelessWidget {
       if (!start.isBefore(block.startTime) && start.isBefore(block.endTime)) {
         return;
       }
-      if (!block.startTime.isBefore(start) && block.startTime.isBefore(gapEnd)) {
+      if (!block.startTime.isBefore(start) &&
+          block.startTime.isBefore(gapEnd)) {
         gapEnd = block.startTime;
       }
     }
@@ -122,14 +123,18 @@ class Planner extends StatelessWidget {
     _selectSlot(start, end);
   }
 
+  // Avoid a record-pattern switch over (block, editingItem) here: the Dart AOT
+  // compiler miscompiles it when editingItem is null, causing a SIGSEGV in
+  // release builds (debug/JIT builds are unaffected).
   bool _isBeingEdited(_TimelineBlock block) {
-    return switch ((block, editingItem)) {
-      (_TaskBlock(:final scheduledTask), EditingScheduledTask(scheduledTask: final e)) =>
-        scheduledTask.id == e.id,
-      (_HabitBlock(:final occurrence), EditingHabitOccurrence(occurrence: final o)) =>
-        occurrence.id == o.id,
-      _ => false,
-    };
+    final editing = editingItem;
+    if (block is _TaskBlock && editing is EditingScheduledTask) {
+      return block.scheduledTask.id == editing.scheduledTask.id;
+    }
+    if (block is _HabitBlock && editing is EditingHabitOccurrence) {
+      return block.occurrence.id == editing.occurrence.id;
+    }
+    return false;
   }
 
   List<_TimelineBlock> _generateTimelineBlocks() {
