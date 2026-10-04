@@ -24,7 +24,7 @@ class HabitBlock extends StatelessWidget {
     return ItemContainer(
       color: color,
       child: Column(
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             spacing: 5,
@@ -74,7 +74,7 @@ class HabitBlock extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
             child: Row(
-              mainAxisAlignment: .spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 switch (habit.scheduleType) {
                   HabitScheduleType.weekdays => Row(
@@ -109,7 +109,7 @@ class HabitBlock extends StatelessWidget {
                     'TODAY',
                     style: GoogleFonts.jetBrainsMono(
                       color: color,
-                      fontWeight: .bold,
+                      fontWeight: FontWeight.bold,
                       fontSize: 10,
                     ),
                   ),
@@ -154,11 +154,11 @@ class _DayBox extends StatelessWidget {
         child: Center(
           child: Text(
             label,
-            textAlign: .center,
+            textAlign: TextAlign.center,
             style: GoogleFonts.jetBrainsMono(
               color: selected ? CadenceColors.black : CadenceColors.textSecondary,
               fontSize: 10,
-              fontWeight: .bold,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

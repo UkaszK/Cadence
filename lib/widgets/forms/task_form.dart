@@ -81,7 +81,7 @@ class _TaskFormState extends State<TaskForm> {
     return Form(
       child: Column(
         spacing: 15,
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FormCategorySelector(
             taskCategories: taskCategories,
@@ -97,7 +97,7 @@ class _TaskFormState extends State<TaskForm> {
           ),
 
           Column(
-            crossAxisAlignment: .start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 6,
             children: [
               FormDueDateField(

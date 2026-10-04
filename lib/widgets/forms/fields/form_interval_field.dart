@@ -74,7 +74,7 @@ class FormIntervalField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: .start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
         Text(
@@ -97,7 +97,7 @@ class FormIntervalField extends StatelessWidget {
             Expanded(
               child: Container(
                 height: 40,
-                alignment: .center,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: _isTooSmall
@@ -110,7 +110,7 @@ class FormIntervalField extends StatelessWidget {
                   '$intervalDays DAYS',
                   style: GoogleFonts.jetBrainsMono(
                     color: CadenceColors.otherAccent,
-                    fontWeight: .bold,
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
                 ),

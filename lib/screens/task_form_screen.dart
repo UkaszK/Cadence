@@ -24,7 +24,7 @@ class TaskFormScreen extends ConsumerWidget {
           style: GoogleFonts.jetBrainsMono(
             color: CadenceColors.accent,
             fontSize: 16,
-            fontWeight: .bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
         Divider(height: 32),

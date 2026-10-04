@@ -96,7 +96,7 @@ class _HabitFormState extends State<HabitForm> {
     return Form(
       child: Column(
         spacing: 15,
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FormCategorySelector(
             taskCategories: taskCategories,
@@ -113,7 +113,7 @@ class _HabitFormState extends State<HabitForm> {
           ),
 
           Column(
-            crossAxisAlignment: .start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
               Text(
