@@ -313,6 +313,7 @@ class _DayNavButton extends StatelessWidget {
         child: Container(
           width: 20,
           height: 20,
+          margin: EdgeInsets.all(6),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             border: Border.all(color: CadenceColors.border, width: 1),
