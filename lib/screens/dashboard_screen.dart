@@ -10,6 +10,7 @@ import 'package:cadence/providers/dashboard_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/widgets/dashboard_screen/daily_progress/dashboard_daily_progress.dart';
 import 'package:cadence/widgets/dashboard_screen/habits/dashboard_habits.dart';
+import 'package:cadence/widgets/dashboard_screen/notes/dashboard_notes.dart';
 import 'package:cadence/widgets/dashboard_screen/plan/dashboard_plan.dart';
 import 'package:cadence/widgets/cadence_loading_screen.dart';
 import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
@@ -127,7 +128,11 @@ class DashboardScreen extends ConsumerWidget {
 
     return dashboardStateAsync.when(
       data: (state) {
-        return CadenceScreenContainer(
+        return GestureDetector(
+          // Dismiss the keyboard when tapping anywhere outside the note input.
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: CadenceScreenContainer(
           spacing: 25,
           children: [
             FadeInTransition(
@@ -207,11 +212,13 @@ class DashboardScreen extends ConsumerWidget {
                         state.habitOccurrences,
                       ),
                     ),
+                    DashboardNotes(date: selectedDay),
                   ],
                 ),
               ),
             ),
           ],
+          ),
         );
       },
       error: (error, stack) => Center(child: Text('Error loading: $error')),
