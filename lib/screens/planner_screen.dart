@@ -125,7 +125,7 @@ class PlannerScreen extends ConsumerWidget {
                             baseDate: baseDate,
                             scheduledTasks: state.scheduledTasks,
                             placedHabits: state.placedHabits,
-                            displayInsertBlocks: !hasTimeSlot,
+                            canCreateSlot: !hasTimeSlot,
                             hasOverlap: hasOverlap,
                             selectedTimeSlot: selectedTimeSlot,
                             editingItem: editingItem,

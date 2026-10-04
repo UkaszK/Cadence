@@ -190,7 +190,7 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
 
   /// Picks a task for the active slot. If no slot is selected a slot sized to
   /// the task's duration starting at the day start is used. When a slot was
-  /// opened via an insert block the slot's end is adjusted to the duration.
+  /// opened by tapping free time the slot's end is adjusted to the duration.
   void handleAddTaskToPlan(Task task) {
     _set(
       selectedTimeSlot: _defaultSlot(task.durationMinutes),
