@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/day.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/task_categories.dart';
@@ -14,9 +15,6 @@ import 'package:cadence/widgets/forms/fields/form_interval_field.dart';
 import 'package:cadence/widgets/forms/fields/form_submit_button.dart';
 import 'package:cadence/widgets/forms/fields/form_title_input_field.dart';
 
-const int _defaultHabitDurationMinutes = 15;
-const int _minIntervalDays = 2;
-
 class HabitForm extends StatefulWidget {
   const HabitForm({super.key, required this.onSubmit, this.editingHabit});
 
@@ -30,10 +28,10 @@ class HabitForm extends StatefulWidget {
 class _HabitFormState extends State<HabitForm> {
   TaskCategory _category = taskCategories.first;
   final _titleController = TextEditingController();
-  int? _durationMinutes = _defaultHabitDurationMinutes;
+  int? _durationMinutes = AppConstants.defaultHabitDurationMinutes;
   HabitScheduleType _scheduleType = HabitScheduleType.weekdays;
   Set<Day> _repeatDays = {};
-  int _intervalDays = _minIntervalDays;
+  int _intervalDays = AppConstants.minimumHabitIntervalDays;
   DateTime _anchorDate = DateTime.now().dateOnly;
   bool _startDateChosen = false;
 
@@ -49,7 +47,8 @@ class _HabitFormState extends State<HabitForm> {
       _durationMinutes = editing.durationMinutes;
       _scheduleType = editing.scheduleType;
       _repeatDays = editing.repeatDaySet;
-      _intervalDays = editing.intervalDays ?? _minIntervalDays;
+      _intervalDays =
+          editing.intervalDays ?? AppConstants.minimumHabitIntervalDays;
       _anchorDate = editing.anchorDate?.dateOnly ?? DateTime.now().dateOnly;
     }
   }
@@ -65,7 +64,8 @@ class _HabitFormState extends State<HabitForm> {
 
   bool get _scheduleValid => switch (_scheduleType) {
     HabitScheduleType.weekdays => _repeatDays.isNotEmpty,
-    HabitScheduleType.interval => _intervalDays >= _minIntervalDays,
+    HabitScheduleType.interval =>
+      _intervalDays >= AppConstants.minimumHabitIntervalDays,
   };
 
   void _submitForm() {
@@ -105,7 +105,10 @@ class _HabitFormState extends State<HabitForm> {
             primaryColor: CadenceColors.otherAccent,
           ),
 
-          FormTitleInputField(controller: _titleController),
+          FormTitleInputField(
+            controller: _titleController,
+            maxLength: AppConstants.habitNameMaxLength,
+          ),
 
           FormDurationField(
             minutes: _durationMinutes,
@@ -146,7 +149,7 @@ class _HabitFormState extends State<HabitForm> {
             HabitScheduleType.interval => FormIntervalField(
               intervalDays: _intervalDays,
               startDate: _anchorDate,
-              minIntervalDays: _minIntervalDays,
+              minIntervalDays: AppConstants.minimumHabitIntervalDays,
               onIntervalChange: (days) => setState(() {
                 _intervalDays = days;
                 // Changing the rhythm restarts the cycle from the chosen

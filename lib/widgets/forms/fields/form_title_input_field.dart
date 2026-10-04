@@ -3,9 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 
 class FormTitleInputField extends StatelessWidget {
-  const FormTitleInputField({super.key, required this.controller});
+  const FormTitleInputField({
+    super.key,
+    required this.controller,
+    required this.maxLength,
+  });
 
   final TextEditingController controller;
+  final int maxLength;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +37,7 @@ class FormTitleInputField extends StatelessWidget {
           ),
           child: TextFormField(
             controller: controller,
-            maxLength: 25,
+            maxLength: maxLength,
             style: GoogleFonts.jetBrainsMono(
               color: CadenceColors.textPrimary,
               fontSize: 12,

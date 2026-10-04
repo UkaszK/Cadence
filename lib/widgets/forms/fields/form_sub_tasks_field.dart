@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 
 class FormSubTasksField<T> extends StatefulWidget {
@@ -221,7 +222,7 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
                       controller: _editController,
                       focusNode: _editFocusNode,
                       autocorrect: false,
-                      maxLength: 25,
+                      maxLength: AppConstants.subTaskNameMaxLength,
                       onFieldSubmitted: (_) => _saveEdit(index),
                       cursorColor: CadenceColors.textSecondary,
                       style: GoogleFonts.jetBrainsMono(fontSize: 12),
@@ -298,7 +299,7 @@ class _FormSubTasksFieldState<T> extends State<FormSubTasksField<T>> {
           focusNode: _newFocusNode,
           autocorrect: false,
           onFieldSubmitted: (_) => _trySaveNew(),
-          maxLength: 25,
+          maxLength: AppConstants.subTaskNameMaxLength,
           cursorColor: CadenceColors.textSecondary,
           style: GoogleFonts.jetBrainsMono(fontSize: 12),
           decoration: InputDecoration(

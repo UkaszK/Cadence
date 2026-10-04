@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/gamification_metrics.dart';
 import 'package:cadence/providers/achievement_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
@@ -61,6 +62,7 @@ void _showStreakUpSnackBar(
     SnackBar(
       backgroundColor: CadenceColors.surface,
       behavior: SnackBarBehavior.floating,
+      duration: AppConstants.snackBarDuration,
       shape: RoundedRectangleBorder(side: BorderSide(color: color, width: 1)),
       content: _StreakUpSnackBarContent(
         oldStreak: oldStreak,

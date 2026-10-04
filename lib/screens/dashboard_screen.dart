@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/task.dart';
 import 'package:cadence/providers/dashboard_providers.dart';
@@ -58,6 +59,7 @@ class DashboardScreen extends ConsumerWidget {
         SnackBar(
           backgroundColor: CadenceColors.surface,
           behavior: SnackBarBehavior.floating,
+          duration: AppConstants.snackBarDuration,
           shape: const RoundedRectangleBorder(
             side: BorderSide(color: CadenceColors.accent, width: 1),
           ),

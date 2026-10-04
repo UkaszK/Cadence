@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/task.dart';
 import 'package:cadence/data/task_categories.dart';
 import 'package:cadence/data/task_category.dart';
@@ -12,8 +13,6 @@ import 'package:cadence/widgets/forms/fields/form_priority_selector.dart';
 import 'package:cadence/widgets/forms/fields/form_sub_tasks_field.dart';
 import 'package:cadence/widgets/forms/fields/form_submit_button.dart';
 import 'package:cadence/widgets/forms/fields/form_title_input_field.dart';
-
-const int _defaultTaskDurationMinutes = 60;
 
 class TaskForm extends StatefulWidget {
   const TaskForm({super.key, required this.onSubmit, this.editingTask});
@@ -28,7 +27,7 @@ class TaskForm extends StatefulWidget {
 class _TaskFormState extends State<TaskForm> {
   TaskCategory _category = taskCategories.first;
   final _titleController = TextEditingController();
-  int? _durationMinutes = _defaultTaskDurationMinutes;
+  int? _durationMinutes = AppConstants.defaultTaskDurationMinutes;
   DateTime? _dueDate;
   TaskPriority _priority = TaskPriority.normal;
   List<String> _subTasks = [];
@@ -89,7 +88,10 @@ class _TaskFormState extends State<TaskForm> {
             onChange: (category) => setState(() => _category = category),
           ),
 
-          FormTitleInputField(controller: _titleController),
+          FormTitleInputField(
+            controller: _titleController,
+            maxLength: AppConstants.taskNameMaxLength,
+          ),
 
           FormDurationField(
             minutes: _durationMinutes,

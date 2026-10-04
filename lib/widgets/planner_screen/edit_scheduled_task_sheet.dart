@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/sub_task.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/widgets/forms/fields/form_submit_button.dart';
 import 'package:cadence/widgets/forms/fields/form_sub_tasks_field.dart';
@@ -145,7 +146,10 @@ class _EditScheduledTaskSheetState extends State<EditScheduledTaskSheet> {
                   const SizedBox(height: 16),
                   FadeInTransition(
                     delay: const Duration(milliseconds: 100),
-                    child: FormTitleInputField(controller: _titleController),
+                    child: FormTitleInputField(
+                      controller: _titleController,
+                      maxLength: AppConstants.taskNameMaxLength,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   FadeInTransition(
