@@ -79,7 +79,7 @@ class CadenceButton extends StatelessWidget {
                 mainAxisSize: expandHorizontally
                     ? MainAxisSize.max
                     : MainAxisSize.min,
-                mainAxisAlignment: .center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (prefixIcon != null) ...[
                     Icon(

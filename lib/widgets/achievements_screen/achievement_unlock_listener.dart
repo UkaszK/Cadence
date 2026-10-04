@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/achievement.dart';
 import 'package:cadence/data/gamification_metrics.dart';
 import 'package:cadence/providers/achievement_providers.dart';
@@ -57,7 +58,7 @@ void _showUnlockSnackBar(
       SnackBar(
         backgroundColor: CadenceColors.surface,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
+        duration: AppConstants.snackBarDuration,
         shape: RoundedRectangleBorder(
           side: BorderSide(color: highest.tier.color, width: 1),
         ),

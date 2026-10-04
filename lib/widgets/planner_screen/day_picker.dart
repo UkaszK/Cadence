@@ -120,14 +120,9 @@ class DayPicker extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            GestureDetector(
-              onTap: () => _shiftWeeks(-1),
-              behavior: HitTestBehavior.opaque,
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: Icon(Icons.chevron_left, size: 16),
-              ),
+            _WeekShiftButton(
+              icon: Icons.chevron_left,
+              action: () => _shiftWeeks(-1),
             ),
 
             Expanded(
@@ -141,14 +136,9 @@ class DayPicker extends StatelessWidget {
               ),
             ),
 
-            GestureDetector(
-              onTap: () => _shiftWeeks(1),
-              behavior: HitTestBehavior.opaque,
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: Icon(Icons.chevron_right, size: 16),
-              ),
+            _WeekShiftButton(
+              icon: Icons.chevron_right,
+              action: () => _shiftWeeks(1),
             ),
           ],
         ),
@@ -236,6 +226,26 @@ class _WeekHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WeekShiftButton extends StatelessWidget {
+  const _WeekShiftButton({required this.icon, required this.action});
+
+  final IconData icon;
+  final VoidCallback action;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: action,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 32,
+        height: 32,
+        child: Icon(icon, size: 20),
       ),
     );
   }

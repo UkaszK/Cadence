@@ -5,7 +5,6 @@ import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
 import 'package:cadence/providers/planner_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
-import 'package:cadence/widgets/planner_screen/insert_block_widget.dart';
 import 'package:cadence/widgets/planner_screen/interactive_block_widget.dart';
 import 'package:cadence/widgets/planner_screen/planner_block_widget.dart';
 
@@ -30,10 +29,6 @@ class _HabitBlock extends _TimelineBlock {
   final HabitOccurrence occurrence;
 }
 
-class _InsertBlock extends _TimelineBlock {
-  _InsertBlock(super.startTime, super.endTime);
-}
-
 class _InteractiveBlock extends _TimelineBlock {
   _InteractiveBlock(super.startTime, super.endTime);
 }
@@ -44,7 +39,7 @@ class Planner extends StatelessWidget {
     required this.baseDate,
     required this.scheduledTasks,
     required this.placedHabits,
-    required this.displayInsertBlocks,
+    required this.canCreateSlot,
     required this.hasOverlap,
     this.selectedTimeSlot,
     this.editingItem,
@@ -57,7 +52,9 @@ class Planner extends StatelessWidget {
   final DateTime baseDate;
   final List<ScheduledTask> scheduledTasks;
   final List<HabitOccurrence> placedHabits;
-  final bool displayInsertBlocks;
+
+  /// Whether tapping free time on the timeline should open a new slot.
+  final bool canCreateSlot;
   final bool hasOverlap;
   final TimeSlot? selectedTimeSlot;
   final EditingPlannerItem? editingItem;
@@ -71,10 +68,58 @@ class Planner extends StatelessWidget {
   static const _rightOffset = 15.0;
   static const _dragStepMinutes = 5;
   static const _blocksOffsetY = 8.0;
+  static const _tapSnapMinutes = 15;
+  static const _defaultSlotMinutes = 60;
+  static const _minSlotMinutes = 15;
+
+  DateTime get _endOfDay =>
+      baseDate.add(const Duration(hours: 23, minutes: 59));
 
   void _selectSlot(DateTime start, DateTime end) {
     onSelectTimeSlot((startTime: start, endTime: end));
     onUpdateTimeSlot((startTime: start, endTime: end));
+  }
+
+  List<_TimelineBlock> _occupiedBlocks() {
+    return <_TimelineBlock>[
+      for (final t in scheduledTasks) _TaskBlock(t),
+      for (final h in placedHabits) _HabitBlock(h),
+    ]..sort((a, b) => a.startTime.compareTo(b.startTime));
+  }
+
+  /// Opens a slot at the tapped time, snapped to [_tapSnapMinutes] and sized
+  /// to [_defaultSlotMinutes] unless an existing block or the end of the day
+  /// comes first. Taps inside an occupied range are ignored.
+  void _handleFreeTimeTap(double localDy) {
+    final rawMinutes = (localDy - _blocksOffsetY) / _pixelsPerMinute;
+    final snapped = (rawMinutes / _tapSnapMinutes).floor() * _tapSnapMinutes;
+    if (snapped < 0) return;
+
+    final start = baseDate.add(Duration(minutes: snapped));
+    if (!start.isBefore(_endOfDay)) return;
+
+    DateTime gapEnd = _endOfDay;
+    for (final block in _occupiedBlocks()) {
+      if (_isBeingEdited(block)) continue;
+      if (!start.isBefore(block.startTime) && start.isBefore(block.endTime)) {
+        return;
+      }
+      if (!block.startTime.isBefore(start) && block.startTime.isBefore(gapEnd)) {
+        gapEnd = block.startTime;
+      }
+    }
+
+    final available = gapEnd.difference(start).inMinutes;
+    if (available < _minSlotMinutes) return;
+
+    final end = start.add(
+      Duration(
+        minutes: available < _defaultSlotMinutes
+            ? available
+            : _defaultSlotMinutes,
+      ),
+    );
+    _selectSlot(start, end);
   }
 
   bool _isBeingEdited(_TimelineBlock block) {
@@ -88,50 +133,10 @@ class Planner extends StatelessWidget {
   }
 
   List<_TimelineBlock> _generateTimelineBlocks() {
-    final List<_TimelineBlock> blocks = [];
-
-    final items = <_TimelineBlock>[
-      for (final t in scheduledTasks) _TaskBlock(t),
-      for (final h in placedHabits) _HabitBlock(h),
-    ]..sort((a, b) => a.startTime.compareTo(b.startTime));
-
-    final endOfDay = baseDate.add(const Duration(hours: 23, minutes: 59));
-
-    DateTime currentTracker = baseDate;
-
-    final bool showInsertBlocks =
-        displayInsertBlocks && selectedTimeSlot == null;
-
-    void fillWithInsertBlocks(DateTime gapStart, DateTime gapEnd) {
-      DateTime tracker = gapStart;
-      while (tracker.isBefore(gapEnd)) {
-        final desiredEndTime = tracker.add(const Duration(hours: 4));
-        final actualEndTime = desiredEndTime.isBefore(gapEnd)
-            ? desiredEndTime
-            : gapEnd;
-
-        blocks.add(_InsertBlock(tracker, actualEndTime));
-        tracker = actualEndTime;
-      }
-    }
-
-    for (final item in items) {
-      if (showInsertBlocks && currentTracker.isBefore(item.startTime)) {
-        fillWithInsertBlocks(currentTracker, item.startTime);
-      }
-
-      if (!_isBeingEdited(item)) {
-        blocks.add(item);
-      }
-
-      if (item.endTime.isAfter(currentTracker)) {
-        currentTracker = item.endTime;
-      }
-    }
-
-    if (showInsertBlocks && currentTracker.isBefore(endOfDay)) {
-      fillWithInsertBlocks(currentTracker, endOfDay);
-    }
+    final List<_TimelineBlock> blocks = [
+      for (final item in _occupiedBlocks())
+        if (!_isBeingEdited(item)) item,
+    ];
 
     if (selectedTimeSlot != null) {
       blocks.add(
@@ -259,15 +264,40 @@ class Planner extends StatelessWidget {
     );
   }
 
-  Widget _buildInsertBlock(DateTime start, DateTime end) {
-    return _positioned(
-      start: start,
-      end: end,
-      inset: 3,
-      child: InsertBlockWidget(
-        startTime: start,
-        endTime: end,
-        onTap: () => _selectSlot(start, end),
+  Widget _buildFreeTimeTapLayer() {
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTapUp: (details) => _handleFreeTimeTap(details.localPosition.dy),
+      ),
+    );
+  }
+
+  Widget _buildEmptyDayHint() {
+    final color = CadenceColors.textSecondary.withValues(alpha: 0.4);
+
+    return Positioned(
+      top: _blocksOffsetY + 24,
+      left: _leftOffset + 15,
+      right: _rightOffset,
+      child: IgnorePointer(
+        child: Row(
+          spacing: 8,
+          children: [
+            Icon(Icons.touch_app_outlined, size: 14, color: color),
+            Expanded(
+              child: Text(
+                'TAP A FREE TIME TO ADD A BLOCK',
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.jetBrainsMono(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -293,7 +323,6 @@ class Planner extends StatelessWidget {
     return switch (block) {
       _TaskBlock(:final scheduledTask) => _buildTaskBlock(scheduledTask),
       _HabitBlock(:final occurrence) => _buildHabitBlock(occurrence),
-      _InsertBlock() => _buildInsertBlock(block.startTime, block.endTime),
       _InteractiveBlock() => _buildInteractiveSlotBlock(
         block.startTime,
         block.endTime,
@@ -304,6 +333,8 @@ class Planner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final blocks = _generateTimelineBlocks();
+    final bool allowTapToCreate = canCreateSlot && selectedTimeSlot == null;
+    final bool isDayEmpty = scheduledTasks.isEmpty && placedHabits.isEmpty;
 
     return SingleChildScrollView(
       padding: EdgeInsets.only(top: 30, bottom: 150),
@@ -314,6 +345,8 @@ class Planner extends StatelessWidget {
         child: Stack(
           children: [
             _buildTimeGrid(),
+            if (allowTapToCreate) _buildFreeTimeTapLayer(),
+            if (allowTapToCreate && isDayEmpty) _buildEmptyDayHint(),
             for (final block in blocks) _buildSpecificBlock(block),
           ],
         ),

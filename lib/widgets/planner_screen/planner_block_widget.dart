@@ -81,7 +81,7 @@ class PlannerBlockWidget extends StatelessWidget {
       children: [
         Flexible(
           child: Row(
-            mainAxisSize: .min,
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (isHabit) ...[
                 Icon(Icons.repeat, size: 12, color: color),

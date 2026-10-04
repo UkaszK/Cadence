@@ -78,21 +78,21 @@ class LibraryScreen extends ConsumerWidget {
             FadeInTransition(
               delay: const Duration(milliseconds: 150),
               child: Row(
-                mainAxisAlignment: .end,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
                     'SHOW ARCHIVED',
                     style: GoogleFonts.jetBrainsMono(
                       color: CadenceColors.textSecondary,
                       fontSize: 10,
-                      fontWeight: .bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   Switch(
                     value: filterState.showArchived,
                     onChanged: filterNotifier.toggleShowArchived,
                     activeThumbColor: CadenceColors.accent,
-                    materialTapTargetSize: .shrinkWrap,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ],
               ),
@@ -167,7 +167,7 @@ class _TaskList extends ConsumerWidget {
                 TaskBlock(
                   task: task,
                   footer: Row(
-                    mainAxisAlignment: .spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         spacing: 10,
@@ -311,17 +311,17 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: .spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
-          crossAxisAlignment: .start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'LIBRARY',
               style: GoogleFonts.jetBrainsMono(
                 color: CadenceColors.textPrimary,
                 fontSize: 16,
-                fontWeight: .w900,
+                fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 4),
@@ -330,7 +330,7 @@ class _Header extends StatelessWidget {
               style: GoogleFonts.jetBrainsMono(
                 color: CadenceColors.textSecondary,
                 fontSize: 10,
-                fontWeight: .bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],

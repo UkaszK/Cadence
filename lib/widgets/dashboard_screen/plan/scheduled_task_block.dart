@@ -112,7 +112,7 @@ class ScheduledTaskBlock extends StatelessWidget {
                               Flexible(
                                 child: Text(
                                   scheduledTask.categoryName.toUpperCase(),
-                                  overflow: .ellipsis,
+                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.jetBrainsMono(
                                     color: CadenceColors.textSecondary,
                                     fontSize: 8,

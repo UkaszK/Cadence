@@ -68,18 +68,18 @@ class _AddToSlotSheetState extends ConsumerState<AddToSlotSheet> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: Column(
-            mainAxisSize: .min,
-            crossAxisAlignment: .stretch,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                mainAxisAlignment: .spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'ADD TO SLOT',
                     style: GoogleFonts.jetBrainsMono(
                       color: color,
                       fontSize: 12,
-                      fontWeight: .bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   InkWell(
@@ -164,8 +164,8 @@ class _TaskPicker extends ConsumerWidget {
     final tasksAsync = ref.watch(tasksProvider);
 
     return Column(
-      mainAxisSize: .min,
-      crossAxisAlignment: .stretch,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CadenceButton(
           primaryColor: CadenceColors.accent,
@@ -318,7 +318,7 @@ class _PickerRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(2),
         ),
         child: Column(
-          crossAxisAlignment: .start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 6,
           children: [
             Row(
@@ -328,11 +328,11 @@ class _PickerRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    overflow: .ellipsis,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.jetBrainsMono(
                       color: CadenceColors.textPrimary,
                       fontSize: 13,
-                      fontWeight: .bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -363,7 +363,7 @@ class _EmptyHint extends StatelessWidget {
           style: GoogleFonts.jetBrainsMono(
             color: color,
             fontSize: 11,
-            fontWeight: .bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

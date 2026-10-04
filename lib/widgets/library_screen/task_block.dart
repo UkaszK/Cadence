@@ -29,10 +29,10 @@ class TaskBlock extends StatelessWidget {
     return ItemContainer(
       color: color,
       child: Column(
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: .spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 spacing: 5,

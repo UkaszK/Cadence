@@ -20,7 +20,7 @@ class HabitFormScreen extends ConsumerWidget {
           style: GoogleFonts.jetBrainsMono(
             color: CadenceColors.otherAccent,
             fontSize: 16,
-            fontWeight: .bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
         Divider(height: 32),

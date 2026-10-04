@@ -40,7 +40,7 @@ class FormCategorySelector extends StatelessWidget {
           labelOf: (category) => category.name,
           iconOf: (category) => category.icon,
           primaryColorOf: (_) => primaryColor,
-          style: .outlined,
+          style: CadenceChoiceChipBarStyle.outlined,
         ),
       ],
     );

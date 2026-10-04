@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/task.dart';
 import 'package:cadence/providers/dashboard_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/widgets/dashboard_screen/daily_progress/dashboard_daily_progress.dart';
 import 'package:cadence/widgets/dashboard_screen/habits/dashboard_habits.dart';
+import 'package:cadence/widgets/dashboard_screen/notes/dashboard_notes.dart';
 import 'package:cadence/widgets/dashboard_screen/plan/dashboard_plan.dart';
 import 'package:cadence/widgets/cadence_loading_screen.dart';
 import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
@@ -58,6 +60,7 @@ class DashboardScreen extends ConsumerWidget {
         SnackBar(
           backgroundColor: CadenceColors.surface,
           behavior: SnackBarBehavior.floating,
+          duration: AppConstants.snackBarDuration,
           shape: const RoundedRectangleBorder(
             side: BorderSide(color: CadenceColors.accent, width: 1),
           ),
@@ -125,7 +128,11 @@ class DashboardScreen extends ConsumerWidget {
 
     return dashboardStateAsync.when(
       data: (state) {
-        return CadenceScreenContainer(
+        return GestureDetector(
+          // Dismiss the keyboard when tapping anywhere outside the note input.
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: CadenceScreenContainer(
           spacing: 25,
           children: [
             FadeInTransition(
@@ -205,11 +212,13 @@ class DashboardScreen extends ConsumerWidget {
                         state.habitOccurrences,
                       ),
                     ),
+                    DashboardNotes(date: selectedDay),
                   ],
                 ),
               ),
             ),
           ],
+          ),
         );
       },
       error: (error, stack) => Center(child: Text('Error loading: $error')),
@@ -311,6 +320,7 @@ class _DayNavButton extends StatelessWidget {
         child: Container(
           width: 20,
           height: 20,
+          margin: EdgeInsets.all(6),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             border: Border.all(color: CadenceColors.border, width: 1),

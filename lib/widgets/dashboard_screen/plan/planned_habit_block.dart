@@ -71,7 +71,7 @@ class PlannedHabitBlock extends StatelessWidget {
                           Flexible(
                             child: Text(
                               occurrence.categoryName.toUpperCase(),
-                              overflow: .ellipsis,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.jetBrainsMono(
                                 color: CadenceColors.textSecondary,
                                 fontSize: 8,

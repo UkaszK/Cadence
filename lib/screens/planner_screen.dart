@@ -125,7 +125,7 @@ class PlannerScreen extends ConsumerWidget {
                             baseDate: baseDate,
                             scheduledTasks: state.scheduledTasks,
                             placedHabits: state.placedHabits,
-                            displayInsertBlocks: !hasTimeSlot,
+                            canCreateSlot: !hasTimeSlot,
                             hasOverlap: hasOverlap,
                             selectedTimeSlot: selectedTimeSlot,
                             editingItem: editingItem,
@@ -214,7 +214,7 @@ class _PlannerTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: .spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(

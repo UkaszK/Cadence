@@ -38,7 +38,7 @@ class CadenceFAB extends ConsumerWidget {
       ),
       builder: (sheetContext) => SafeArea(
         child: Column(
-          mainAxisSize: .min,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
             FadeInTransition(
@@ -152,7 +152,7 @@ class _ChooserTile extends StatelessWidget {
       leading: Container(
         width: 36,
         height: 36,
-        alignment: .center,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: color),
@@ -164,7 +164,7 @@ class _ChooserTile extends StatelessWidget {
         title,
         style: GoogleFonts.jetBrainsMono(
           color: CadenceColors.textPrimary,
-          fontWeight: .bold,
+          fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
       ),

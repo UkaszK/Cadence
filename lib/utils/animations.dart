@@ -526,7 +526,8 @@ class _CadenceValueSwitcherState<T> extends State<CadenceValueSwitcher<T>> {
           alignment: Alignment.topCenter,
           children: [
             ...previousChildren,
-            ?currentChild,
+            // ignore: use_null_aware_elements
+            if (currentChild != null) currentChild,
           ],
         );
       },

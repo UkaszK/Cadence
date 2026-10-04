@@ -56,15 +56,15 @@ Future<bool> confirmArchive(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisSize: .min,
-              crossAxisAlignment: .start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'ARCHIVE ${kind.toUpperCase()}',
                   style: GoogleFonts.jetBrainsMono(
                     color: CadenceColors.warning,
                     fontSize: 16,
-                    fontWeight: .w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
 
@@ -76,7 +76,7 @@ Future<bool> confirmArchive(
                     children: [
                       TextSpan(
                         text: '"$name"',
-                        style: const TextStyle(fontWeight: .bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       TextSpan(
                         text:
@@ -96,7 +96,7 @@ Future<bool> confirmArchive(
                 const SizedBox(height: 16),
 
                 Row(
-                  mainAxisAlignment: .end,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   spacing: 8,
                   children: [
                     CadenceButton(
