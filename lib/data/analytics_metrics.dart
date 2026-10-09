@@ -127,8 +127,6 @@ class AnalyticsMetrics {
     required this.objectivesDone,
     required this.objectivesPlanned,
     required this.focusMinutes,
-    required this.currentStreak,
-    required this.bestStreak,
     required this.categories,
     required this.habits,
     required this.weekdays,
@@ -145,10 +143,6 @@ class AnalyticsMetrics {
   final int objectivesDone;
   final int objectivesPlanned;
   final int focusMinutes;
-
-  /// Consecutive days (ending today or yesterday) with at least one completion.
-  final int currentStreak;
-  final int bestStreak;
 
   /// Sorted by completed count, descending. Only categories with activity.
   final List<CategoryStat> categories;
@@ -303,14 +297,6 @@ AnalyticsMetrics computeAnalytics({
     );
   }
 
-  // Streaks are computed over full history, not just the selected range.
-  final activeDays = <DateTime>{
-    for (final entry in tasksByDay.entries)
-      if (entry.value.any((t) => t.completed)) entry.key,
-    ...habitCompletionsByDay.keys,
-  };
-  final (currentStreak, bestStreak) = _computeStreaks(activeDays, endDate);
-
   final categories =
       categoryCounters.entries
           .map(
@@ -370,44 +356,9 @@ AnalyticsMetrics computeAnalytics({
     objectivesDone: objectivesDone,
     objectivesPlanned: objectivesPlanned,
     focusMinutes: focusMinutes,
-    currentStreak: currentStreak,
-    bestStreak: bestStreak,
     categories: categories,
     habits: habitStats,
     weekdays: weekdays,
     windows: windows,
   );
-}
-
-(int current, int best) _computeStreaks(
-  Set<DateTime> activeDays,
-  DateTime today,
-) {
-  if (activeDays.isEmpty) return (0, 0);
-
-  // Current streak: walk backwards from today; allow today to be pending.
-  var cursor = activeDays.contains(today)
-      ? today
-      : today.subtract(const Duration(days: 1));
-  var current = 0;
-  while (activeDays.contains(cursor)) {
-    current++;
-    cursor = cursor.subtract(const Duration(days: 1));
-  }
-
-  // Best streak: longest run of consecutive active days.
-  final sorted = activeDays.toList()..sort();
-  var best = 1;
-  var run = 1;
-  for (var i = 1; i < sorted.length; i++) {
-    final gap = sorted[i].difference(sorted[i - 1]).inDays;
-    if (gap == 1) {
-      run++;
-      if (run > best) best = run;
-    } else if (gap > 1) {
-      run = 1;
-    }
-  }
-
-  return (current, best < current ? current : best);
 }

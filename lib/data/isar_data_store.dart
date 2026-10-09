@@ -1,6 +1,5 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:cadence/data/achievement_unlock.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/quick_note.dart';
@@ -20,7 +19,6 @@ class IsarDataStore {
       HabitSchema,
       ScheduledTaskSchema,
       HabitOccurrenceSchema,
-      AchievementUnlockSchema,
       QuickNoteSchema,
     ], directory: dir.path);
   }
@@ -31,8 +29,10 @@ class IsarDataStore {
 
   static Task? getTask(int id) => instance.tasks.getSync(id);
 
-  static Stream<List<Task>> watchAllTasks() =>
-      instance.tasks.filter().archivedEqualTo(false).watch(fireImmediately: true);
+  static Stream<List<Task>> watchAllTasks() => instance.tasks
+      .filter()
+      .archivedEqualTo(false)
+      .watch(fireImmediately: true);
 
   static Stream<List<Task>> watchAllTasksIncludingArchived() =>
       instance.tasks.where().watch(fireImmediately: true);
@@ -129,27 +129,11 @@ class IsarDataStore {
     );
   }
 
-  // AchievementUnlock
-  static Set<String> getAnnouncedAchievementKeys() => instance
-      .achievementUnlocks
-      .where()
-      .findAllSync()
-      .map((unlock) => unlock.key)
-      .toSet();
-
-  static void addAchievementUnlocks(Iterable<String> keys) {
-    final now = DateTime.now();
-    final unlocks = keys
-        .map((key) => AchievementUnlock(key: key, unlockedAt: now))
-        .toList();
-    if (unlocks.isEmpty) return;
-
-    instance.writeTxnSync(() => instance.achievementUnlocks.putAllSync(unlocks));
-  }
-
   // QuickNote
-  static Stream<List<QuickNote>> watchQuickNotes() =>
-      instance.quickNotes.where().sortByCreatedAt().watch(fireImmediately: true);
+  static Stream<List<QuickNote>> watchQuickNotes() => instance.quickNotes
+      .where()
+      .sortByCreatedAt()
+      .watch(fireImmediately: true);
 
   static void addQuickNote(QuickNote note) {
     instance.writeTxnSync(() => instance.quickNotes.putSync(note));

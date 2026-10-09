@@ -1,6 +1,6 @@
 # Cadence
 
-Cadence is a mobile Flutter app for daily planning and routine tracking. Work lives in a **Library** of **Tasks** and **Habits**; each day you build a **Plan** on a timeline, check things off on the **Dashboard**, and review trends in **Analytics**. Streaks and achievements keep a steady rhythm going.
+Cadence is a mobile Flutter app for daily planning and routine tracking. Work lives in a **Library** of **Tasks** and **Habits**; each day you build a **Plan** on a timeline, check things off on the **Dashboard**, and review trends in **Analytics**.
 
 The complete technical project overview is available in [SUMMARY.md](docs/SUMMARY.md). The migration from the earlier QuestLog concept is documented in [MIGRATION.md](docs/MIGRATION.md).
 
@@ -15,7 +15,6 @@ In a few selected cases, AI-assisted tools supported the development and documen
 - **Library:** Tasks and Habits in separate tabs, grouped by category. Tasks can be filtered (all, high priority, due today, one-off); archived items can be shown and restored. "Plan today" sends a task straight to the Planner.
 - **Forms:** Create tasks with title, category, duration, optional due date, priority, and subtasks. Create habits with title, category, duration, and a schedule — either on chosen weekdays or every N days from a start date.
 - **Analytics:** Progress metrics, daily completions, weekday comparisons, category breakdowns, habit consistency, and schedule distribution.
-- **Achievements:** Badges, streaks, and progress tracking. Unlocked achievements are stored locally.
 - **Offline-first:** The app stores its data locally and does not require a network connection for its core features.
 
 ## Technology
@@ -93,7 +92,7 @@ lib/
 
 The main layers are:
 
-- `lib/data/` defines tasks, habits, the daily schedule (`ScheduledTask`, `HabitOccurrence`), achievements, and analytics metrics.
+- `lib/data/` defines tasks, habits, the daily schedule (`ScheduledTask`, `HabitOccurrence`), and analytics metrics.
 - `lib/data/isar_data_store.dart` encapsulates database initialization, reading, writing, updating, archiving, and deletion.
 - `lib/providers/` connects Isar watchers to the screens and computes feature-specific state.
 - `lib/screens/` contains the visible app areas.

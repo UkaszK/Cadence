@@ -31,8 +31,5 @@ class CadenceColors {
   static const Color danger = Colors.red;
   static const Color info = Color.fromARGB(255, 173, 216, 230);
 
-  // Achievement tier colors
-  static const Color bronze = Color.fromARGB(255, 205, 133, 84);
-  static const Color silver = Color.fromARGB(255, 197, 203, 214);
   static const Color gold = Color.fromARGB(255, 240, 196, 100);
 }

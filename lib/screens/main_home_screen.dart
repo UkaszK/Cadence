@@ -6,8 +6,6 @@ import 'package:cadence/screens/analytics_screen.dart';
 import 'package:cadence/screens/dashboard_screen.dart';
 import 'package:cadence/screens/library_screen.dart';
 import 'package:cadence/screens/planner_screen.dart';
-import 'package:cadence/widgets/achievements_screen/achievement_unlock_listener.dart';
-import 'package:cadence/widgets/achievements_screen/streak_up_listener.dart';
 import 'package:cadence/widgets/cadence_app_bar.dart';
 import 'package:cadence/widgets/cadence_fab.dart';
 import 'package:cadence/widgets/cadence_navigation_bar.dart';
@@ -30,10 +28,9 @@ class MainHomeScreen extends ConsumerWidget {
     return Scaffold(
       extendBody: true,
       appBar: CadenceAppBar(),
-      body: AchievementUnlockListener(
-        child: StreakUpListener(
-          child: CadenceTabSwitcher(index: currentIndex, children: _pages),
-        ),
+      body: CadenceTabSwitcher(
+        index: currentIndex,
+        children: _pages,
       ),
       bottomNavigationBar: CadenceNavigationBar(
         selectedIndex: currentIndex,

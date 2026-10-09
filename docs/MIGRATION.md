@@ -2,6 +2,9 @@
 
 Branch: `66-away-from-questlog`
 
+Historical note: the streak and achievement features described below were
+removed from the app after this migration.
+
 ## Motivation
 
 The "Quest" metaphor (Main Quest / Side Quest / Assembler / Backlog) is not intuitive. The app is reframed around two plain concepts:
