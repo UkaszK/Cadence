@@ -11,7 +11,7 @@ In a few selected cases, AI-assisted tools supported the development and documen
 ## Features
 
 - **Dashboard:** Daily view with date selection, daily progress, the day's Plan (scheduled tasks and placed habits in timeline order), and a Habits checklist of everything expected that day. Tasks with a due date are archived automatically once completed, with an Undo action.
-- **Planner:** Time-based daily planning with editable time slots, overlap detection, and a sheet to drop a task or an expected habit into a slot.
+- **Planner:** Time-based daily planning with editable time slots, overlap detection, and a sheet to drop a task or an expected habit into a slot. While dragging, the page automatically scrolls when the block's leading edge (or the handle being resized) approaches the top or bottom of the visible page, regardless of where you hold the block.
 - **Library:** Tasks and Habits in separate tabs, grouped by category. Tasks can be filtered (all, high priority, due today, one-off); archived items can be shown and restored. "Plan today" sends a task straight to the Planner.
 - **Forms:** Create tasks with title, category, duration, optional due date, priority, and subtasks. Create habits with title, category, duration, and a schedule — either on chosen weekdays or every N days from a start date.
 - **Analytics:** Progress metrics, daily completions, weekday comparisons, category breakdowns, habit consistency, and schedule distribution.

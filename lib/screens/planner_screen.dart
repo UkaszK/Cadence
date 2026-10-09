@@ -15,8 +15,21 @@ import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
 import 'package:cadence/widgets/planner_screen/planner.dart';
 import 'package:cadence/widgets/cadence_loading_screen.dart';
 
-class PlannerScreen extends ConsumerWidget {
+class PlannerScreen extends ConsumerStatefulWidget {
   const PlannerScreen({super.key});
+
+  @override
+  ConsumerState<PlannerScreen> createState() => _PlannerScreenState();
+}
+
+class _PlannerScreenState extends ConsumerState<PlannerScreen> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   bool _hasOverlap(
     List<ScheduledTask> scheduledTasks,
@@ -48,7 +61,7 @@ class PlannerScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final notifier = ref.read(plannerViewStateNotifierProvider.notifier);
     final viewState = ref.watch(plannerViewStateNotifierProvider);
     final selectedDay = viewState.selectedDay;
@@ -89,6 +102,7 @@ class PlannerScreen extends ConsumerWidget {
               children: [
                 Positioned.fill(
                   child: SingleChildScrollView(
+                    controller: _scrollController,
                     padding: EdgeInsets.only(
                       top: 20,
                       left: 16,
@@ -122,6 +136,7 @@ class PlannerScreen extends ConsumerWidget {
                         FadeInTransition(
                           delay: const Duration(milliseconds: 150),
                           child: Planner(
+                            scrollController: _scrollController,
                             baseDate: baseDate,
                             scheduledTasks: state.scheduledTasks,
                             placedHabits: state.placedHabits,

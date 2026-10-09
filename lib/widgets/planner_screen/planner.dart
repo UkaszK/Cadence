@@ -33,9 +33,10 @@ class _InteractiveBlock extends _TimelineBlock {
   _InteractiveBlock(super.startTime, super.endTime);
 }
 
-class Planner extends StatelessWidget {
+class Planner extends StatefulWidget {
   const Planner({
     super.key,
+    required this.scrollController,
     required this.baseDate,
     required this.scheduledTasks,
     required this.placedHabits,
@@ -50,6 +51,7 @@ class Planner extends StatelessWidget {
   });
 
   final DateTime baseDate;
+  final ScrollController scrollController;
   final List<ScheduledTask> scheduledTasks;
   final List<HabitOccurrence> placedHabits;
 
@@ -63,6 +65,11 @@ class Planner extends StatelessWidget {
   final void Function(ScheduledTask) onSelectExistingTask;
   final void Function(HabitOccurrence) onSelectExistingHabit;
 
+  @override
+  State<Planner> createState() => _PlannerState();
+}
+
+class _PlannerState extends State<Planner> {
   static const _pixelsPerMinute = 1.0;
   static const _leftOffset = 70.0;
   static const _rightOffset = 15.0;
@@ -73,17 +80,17 @@ class Planner extends StatelessWidget {
   static const _minSlotMinutes = 15;
 
   DateTime get _endOfDay =>
-      baseDate.add(const Duration(hours: 23, minutes: 59));
+      widget.baseDate.add(const Duration(hours: 23, minutes: 59));
 
   void _selectSlot(DateTime start, DateTime end) {
-    onSelectTimeSlot((startTime: start, endTime: end));
-    onUpdateTimeSlot((startTime: start, endTime: end));
+    widget.onSelectTimeSlot((startTime: start, endTime: end));
+    widget.onUpdateTimeSlot((startTime: start, endTime: end));
   }
 
   List<_TimelineBlock> _occupiedBlocks() {
     return <_TimelineBlock>[
-      for (final t in scheduledTasks) _TaskBlock(t),
-      for (final h in placedHabits) _HabitBlock(h),
+      for (final t in widget.scheduledTasks) _TaskBlock(t),
+      for (final h in widget.placedHabits) _HabitBlock(h),
     ]..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
@@ -95,7 +102,7 @@ class Planner extends StatelessWidget {
     final snapped = (rawMinutes / _tapSnapMinutes).floor() * _tapSnapMinutes;
     if (snapped < 0) return;
 
-    final start = baseDate.add(Duration(minutes: snapped));
+    final start = widget.baseDate.add(Duration(minutes: snapped));
     if (!start.isBefore(_endOfDay)) return;
 
     DateTime gapEnd = _endOfDay;
@@ -127,7 +134,7 @@ class Planner extends StatelessWidget {
   // compiler miscompiles it when editingItem is null, causing a SIGSEGV in
   // release builds (debug/JIT builds are unaffected).
   bool _isBeingEdited(_TimelineBlock block) {
-    final editing = editingItem;
+    final editing = widget.editingItem;
     if (block is _TaskBlock && editing is EditingScheduledTask) {
       return block.scheduledTask.id == editing.scheduledTask.id;
     }
@@ -143,11 +150,11 @@ class Planner extends StatelessWidget {
         if (!_isBeingEdited(item)) item,
     ];
 
-    if (selectedTimeSlot != null) {
+    if (widget.selectedTimeSlot != null) {
       blocks.add(
         _InteractiveBlock(
-          selectedTimeSlot!.startTime,
-          selectedTimeSlot!.endTime,
+          widget.selectedTimeSlot!.startTime,
+          widget.selectedTimeSlot!.endTime,
         ),
       );
     }
@@ -167,8 +174,9 @@ class Planner extends StatelessWidget {
       ),
     );
 
-    for (int hour = baseDate.hour; hour <= 24; hour += 2) {
-      double topPosition = (hour - baseDate.hour) * 60 * _pixelsPerMinute;
+    for (int hour = widget.baseDate.hour; hour <= 24; hour += 2) {
+      double topPosition =
+          (hour - widget.baseDate.hour) * 60 * _pixelsPerMinute;
 
       gridElements.add(
         Positioned(
@@ -215,7 +223,7 @@ class Planner extends StatelessWidget {
     double inset = 0,
     required Widget child,
   }) {
-    int minutesFromStart = start.difference(baseDate).inMinutes;
+    int minutesFromStart = start.difference(widget.baseDate).inMinutes;
     int duration = end.difference(start).inMinutes;
 
     double topPosition =
@@ -247,7 +255,7 @@ class Planner extends StatelessWidget {
         timeTextOneLine: scheduledTask.timeTextOneLine,
         color: scheduledTask.status.color,
         description: scheduledTask.subTasksListed,
-        onTap: () => onSelectExistingTask(scheduledTask),
+        onTap: () => widget.onSelectExistingTask(scheduledTask),
       ),
     );
   }
@@ -264,7 +272,7 @@ class Planner extends StatelessWidget {
             ? CadenceColors.success
             : CadenceColors.otherAccent,
         isHabit: true,
-        onTap: () => onSelectExistingHabit(occurrence),
+        onTap: () => widget.onSelectExistingHabit(occurrence),
       ),
     );
   }
@@ -308,17 +316,20 @@ class Planner extends StatelessWidget {
   }
 
   Widget _buildInteractiveSlotBlock(DateTime start, DateTime end) {
-    final slotColor = hasOverlap ? CadenceColors.danger : CadenceColors.accent;
+    final slotColor = widget.hasOverlap
+        ? CadenceColors.danger
+        : CadenceColors.accent;
 
     return _positioned(
       start: start,
       end: end,
       child: InteractiveBlockWidget(
-        baseDate: baseDate,
+        scrollController: widget.scrollController,
+        baseDate: widget.baseDate,
         startTime: start,
         endTime: end,
         color: slotColor,
-        onUpdateTimeSlot: onUpdateTimeSlot,
+        onUpdateTimeSlot: widget.onUpdateTimeSlot,
         dragStepMinutes: _dragStepMinutes,
       ),
     );
@@ -338,15 +349,18 @@ class Planner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final blocks = _generateTimelineBlocks();
-    final bool allowTapToCreate = canCreateSlot && selectedTimeSlot == null;
-    final bool isDayEmpty = scheduledTasks.isEmpty && placedHabits.isEmpty;
+    final bool allowTapToCreate =
+        widget.canCreateSlot && widget.selectedTimeSlot == null;
+    final bool isDayEmpty =
+        widget.scheduledTasks.isEmpty && widget.placedHabits.isEmpty;
 
-    return SingleChildScrollView(
+    return Padding(
       padding: EdgeInsets.only(top: 30, bottom: 150),
       child: SizedBox(
         width: double.infinity,
         height:
-            (24 - baseDate.hour) * 60 * _pixelsPerMinute + _blocksOffsetY * 2,
+            (24 - widget.baseDate.hour) * 60 * _pixelsPerMinute +
+            _blocksOffsetY * 2,
         child: Stack(
           children: [
             _buildTimeGrid(),
