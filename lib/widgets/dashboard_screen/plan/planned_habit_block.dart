@@ -91,21 +91,24 @@ class PlannedHabitBlock extends StatelessWidget {
                             color: CadenceColors.otherAccent,
                           ),
                           Flexible(
-                            child: AnimatedDefaultTextStyle(
-                              duration: AnimationDurations.fast,
-                              curve: CadenceMotion.enter,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.jetBrainsMono(
-                                color: occurrence.completed
-                                    ? CadenceColors.textSecondary
-                                    : CadenceColors.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                decoration: occurrence.completed
-                                    ? TextDecoration.lineThrough
-                                    : null,
+                            child: InkWell(
+                              onTap: () => onCheck(!occurrence.completed),
+                              child: AnimatedDefaultTextStyle(
+                                duration: AnimationDurations.fast,
+                                curve: CadenceMotion.enter,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.jetBrainsMono(
+                                  color: occurrence.completed
+                                      ? CadenceColors.textSecondary
+                                      : CadenceColors.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  decoration: occurrence.completed
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                                child: Text(occurrence.name),
                               ),
-                              child: Text(occurrence.name),
                             ),
                           ),
                         ],

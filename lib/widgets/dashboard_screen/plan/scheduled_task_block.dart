@@ -40,17 +40,20 @@ class ScheduledTaskBlock extends StatelessWidget {
         const SizedBox(width: 10),
 
         Expanded(
-          child: AnimatedDefaultTextStyle(
-            duration: AnimationDurations.fast,
-            style: GoogleFonts.jetBrainsMono(
-              color: checked
-                  ? CadenceColors.textSecondary
-                  : CadenceColors.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              decoration: checked ? TextDecoration.lineThrough : null,
+          child: InkWell(
+            onTap: () => onCheckSubTask(subTask, !checked),
+            child: AnimatedDefaultTextStyle(
+              duration: AnimationDurations.fast,
+              style: GoogleFonts.jetBrainsMono(
+                color: checked
+                    ? CadenceColors.textSecondary
+                    : CadenceColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                decoration: checked ? TextDecoration.lineThrough : null,
+              ),
+              child: Text(subTask.name, softWrap: true),
             ),
-            child: Text(subTask.name, softWrap: true),
           ),
         ),
       ],
@@ -123,12 +126,11 @@ class ScheduledTaskBlock extends StatelessWidget {
                             ],
                           ),
 
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onEdit,
-                            child: Row(
-                              children: [
-                                Flexible(
+                          Row(
+                            children: [
+                              Flexible(
+                                child: InkWell(
+                                  onTap: () => onCheckTask(!completed),
                                   child: AnimatedDefaultTextStyle(
                                     duration: AnimationDurations.fast,
                                     curve: CadenceMotion.enter,
@@ -145,14 +147,17 @@ class ScheduledTaskBlock extends StatelessWidget {
                                     child: Text(scheduledTask.name),
                                   ),
                                 ),
-                                const SizedBox(width: 6),
-                                const Icon(
+                              ),
+                              const SizedBox(width: 6),
+                              InkWell(
+                                onTap: onEdit,
+                                child: const Icon(
                                   Icons.edit_outlined,
                                   size: 12,
                                   color: CadenceColors.textSecondary,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
