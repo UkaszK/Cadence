@@ -7,8 +7,10 @@ import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
 import 'package:cadence/providers/planner_providers.dart';
 import 'package:cadence/providers/schedule_providers.dart';
+import 'package:cadence/providers/settings_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/utils/DateTime/date_time_extension.dart';
+import 'package:cadence/utils/sleep_time.dart';
 import 'package:cadence/widgets/planner_screen/active_time_slot_bar.dart';
 import 'package:cadence/widgets/planner_screen/day_picker.dart';
 import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
@@ -76,6 +78,10 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     final PendingPlannerItem? pendingItem = viewState.pendingItem;
     final bool hasTimeSlot = selectedTimeSlot != null;
     final String pendingItemName = pendingItem?.name ?? editingItem?.name ?? '';
+    final settings = ref.watch(settingsProvider).value;
+    final sleepRanges = settings != null && settings.sleepEnabled
+        ? sleepRangesForDay(settings.bedtimeMinutes, settings.wakeUpMinutes)
+        : const <SleepRange>[];
 
     Future<void> editTaskDetails(ScheduledTask scheduledTask) async {
       final details = await showEditScheduledTaskSheet(context, scheduledTask);
@@ -150,6 +156,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                                 notifier.handleSelectExistingScheduledTask,
                             onSelectExistingHabit:
                                 notifier.handleSelectExistingHabitOccurrence,
+                            sleepRanges: sleepRanges,
                           ),
                         ),
                       ],

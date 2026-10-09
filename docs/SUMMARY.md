@@ -16,6 +16,7 @@ Die App arbeitet lokal auf dem Gerät. Aufgaben, Gewohnheiten, Tagesplanung und 
 | Persistenz | Isar (`isar`, `isar_flutter_libs`) |
 | Statistiken | `fl_chart` |
 | Typografie | `google_fonts`, unter anderem JetBrains Mono |
+| App-Version | `package_info_plus` |
 | Icons und Assets | Material Icons und SVGs in `assets/icons/` |
 
 ## Einstiegspunkt und App-Lifecycle
@@ -53,7 +54,7 @@ Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tage
 ### Hauptnavigation
 
 - **Dashboard:** Tagesansicht mit Datumsauswahl, täglichem Fortschritt, dem Plan des Tages (geplante Tasks und platzierte Habits in zeitlicher Reihenfolge) sowie einer Habit-Checkliste aller an diesem Tag erwarteten Gewohnheiten. Tasks mit Fälligkeitsdatum werden nach Abschluss automatisch archiviert (mit Undo).
-- **Planner:** Visuelle Tagesplanung über Zeitblöcke. Tasks und erwartete Habits können einem Zeitfenster zugeordnet, verschoben oder entfernt werden. Überschneidungen werden erkannt.
+- **Planner:** Visuelle Tagesplanung über Zeitblöcke. Tasks und erwartete Habits können einem Zeitfenster zugeordnet, verschoben oder entfernt werden. Überschneidungen werden erkannt. Eine optionale geplante Schlafenszeit wird als rein visuelles Band auf der Zeitleiste angezeigt.
 - **Analytics:** Auswertungen für einen wählbaren Zeitraum mit Kennzahlen und Diagrammen.
 - **Library:** Tasks und Habits in getrennten Tabs, gruppiert nach Kategorien. Tasks sind filterbar (alle, hohe Priorität, heute fällig, einmalig); archivierte Einträge lassen sich einblenden und wiederherstellen.
 
@@ -61,7 +62,7 @@ Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tage
 
 - **Task-Formular:** Titel, Kategorie, Dauer, optionales Fälligkeitsdatum, Priorität und Unteraufgaben.
 - **Habit-Formular:** Titel, Kategorie, Dauer und Zeitplan – entweder an ausgewählten Wochentagen oder alle N Tage ab einem Startdatum.
-- **Settings:** Vorbereiteter Einstellungs-Screen.
+- **Settings:** Über das Zahnrad-Icon in der oberen App-Bar erreichbar. Geplante Schlafens- und Aufwachzeit sowie deren Anzeige im Planner; unten wird die installierte Cadence-Version angezeigt.
 - Wiederverwendbare Komponenten für App-Bar, Navigation, FAB, Buttons, Dropdowns, Choice Chips, Switches, Badges, Ladezustände und Screen-Container.
 
 ## Domänenmodell
@@ -72,6 +73,7 @@ Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tage
 - `Habit`: Gewohnheit mit Kategorie, Dauer, Zeitplan (`weekdays` mit Wochentagen oder `interval` mit N Tagen und Ankerdatum) und Archivstatus.
 - `ScheduledTask`: Zeitblock einer Aufgabe im Plan eines Tages, inklusive Unteraufgaben-Fortschritt und Abschluss.
 - `HabitOccurrence`: Vorkommen einer Gewohnheit an einem Tag; optional mit Zeitfenster im Plan und Abschlusszeitpunkt.
+- `AppSettings`: Einzelner Datensatz mit Benutzereinstellungen, aktuell geplante Schlafens- und Aufwachzeit sowie deren Anzeige im Planner.
 
 ### Unterstützende Typen und Metriken
 

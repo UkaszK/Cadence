@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cadence/data/app_settings.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/quick_note.dart';
@@ -20,7 +21,18 @@ class IsarDataStore {
       ScheduledTaskSchema,
       HabitOccurrenceSchema,
       QuickNoteSchema,
+      AppSettingsSchema,
     ], directory: dir.path);
+  }
+
+  // AppSettings
+  static Stream<AppSettings> watchSettings() => instance.appSettings
+      .watchObject(AppSettings.singletonId, fireImmediately: true)
+      .map((settings) => settings ?? AppSettings());
+
+  static void saveSettings(AppSettings settings) {
+    settings.id = AppSettings.singletonId;
+    instance.writeTxnSync(() => instance.appSettings.putSync(settings));
   }
 
   // Task

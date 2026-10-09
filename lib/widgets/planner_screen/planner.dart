@@ -5,6 +5,7 @@ import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
 import 'package:cadence/providers/planner_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/sleep_time.dart';
 import 'package:cadence/widgets/planner_screen/interactive_block_widget.dart';
 import 'package:cadence/widgets/planner_screen/planner_block_widget.dart';
 
@@ -48,6 +49,7 @@ class Planner extends StatefulWidget {
     required this.onUpdateTimeSlot,
     required this.onSelectExistingTask,
     required this.onSelectExistingHabit,
+    this.sleepRanges = const [],
   });
 
   final DateTime baseDate;
@@ -64,6 +66,9 @@ class Planner extends StatefulWidget {
   final void Function(TimeSlot) onUpdateTimeSlot;
   final void Function(ScheduledTask) onSelectExistingTask;
   final void Function(HabitOccurrence) onSelectExistingHabit;
+
+  /// Planned sleep shown as a purely visual band behind the timeline.
+  final List<SleepRange> sleepRanges;
 
   @override
   State<Planner> createState() => _PlannerState();
@@ -315,6 +320,76 @@ class _PlannerState extends State<Planner> {
     );
   }
 
+  Widget _buildSleepBand(SleepRange range) {
+    final dayStart = widget.baseDate.hour * 60;
+    final start = (range.start - dayStart).clamp(0, minutesPerDay);
+    final end = (range.end - dayStart).clamp(0, minutesPerDay);
+    if (end <= start) return const SizedBox.shrink();
+
+    final reachesDayStart = range.start == 0;
+    final reachesDayEnd = range.end == minutesPerDay;
+    final color = CadenceColors.info;
+    final edge = BorderSide(color: color.withValues(alpha: 0.35));
+    final label = reachesDayStart
+        ? 'WAKE UP · ${formatMinutesOfDay(range.end)}'
+        : reachesDayEnd
+        ? 'BEDTIME · ${formatMinutesOfDay(range.start)}'
+        : 'SLEEP · ${formatMinutesOfDay(range.start)} – '
+              '${formatMinutesOfDay(range.end)}';
+    final height = (end - start) * _pixelsPerMinute;
+
+    return Positioned(
+      top: start * _pixelsPerMinute + _blocksOffsetY,
+      height: height,
+      left: _leftOffset + 1,
+      right: 0,
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.02),
+            border: Border(
+              top: reachesDayStart ? BorderSide.none : edge,
+              bottom: reachesDayEnd ? BorderSide.none : edge,
+            ),
+          ),
+          child: height < 20
+              ? null
+              : Align(
+                  // Keep the label next to the edge where sleep begins or ends.
+                  alignment: reachesDayStart
+                      ? Alignment.bottomLeft
+                      : Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 4, 8, 4),
+                    child: Row(
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          Icons.bedtime_outlined,
+                          size: 12,
+                          color: color.withValues(alpha: 0.7),
+                        ),
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.jetBrainsMono(
+                              color: color.withValues(alpha: 0.7),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildInteractiveSlotBlock(DateTime start, DateTime end) {
     final slotColor = widget.hasOverlap
         ? CadenceColors.danger
@@ -364,6 +439,7 @@ class _PlannerState extends State<Planner> {
         child: Stack(
           children: [
             _buildTimeGrid(),
+            for (final range in widget.sleepRanges) _buildSleepBand(range),
             if (allowTapToCreate) _buildFreeTimeTapLayer(),
             if (allowTapToCreate && isDayEmpty) _buildEmptyDayHint(),
             for (final block in blocks) _buildSpecificBlock(block),
