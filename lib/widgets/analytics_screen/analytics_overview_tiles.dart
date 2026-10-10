@@ -47,29 +47,11 @@ class AnalyticsOverviewTiles extends StatelessWidget {
             ),
           ],
         ),
-        Row(
-          spacing: 12,
-          children: [
-            Expanded(
-              child: _StatTile(
-                icon: Icons.timer_outlined,
-                label: 'FOCUS TIME',
-                value: _focusTimeText(),
-                subtitle: 'TASKS COMPLETED',
-              ),
-            ),
-            Expanded(
-              child: _StatTile(
-                icon: Icons.local_fire_department_outlined,
-                label: 'STREAK',
-                value: '${metrics.currentStreak}D',
-                valueColor: metrics.currentStreak > 0
-                    ? CadenceColors.otherAccent
-                    : CadenceColors.textSecondary,
-                subtitle: 'BEST ${metrics.bestStreak}D',
-              ),
-            ),
-          ],
+        _StatTile(
+          icon: Icons.timer_outlined,
+          label: 'FOCUS TIME',
+          value: _focusTimeText(),
+          subtitle: 'TASKS COMPLETED',
         ),
       ],
     );

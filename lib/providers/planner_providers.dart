@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/isar_data_store.dart';
@@ -16,7 +17,6 @@ sealed class PendingPlannerItem {
   const PendingPlannerItem();
 
   String get name;
-  int get durationMinutes;
 }
 
 class PendingTask extends PendingPlannerItem {
@@ -27,7 +27,6 @@ class PendingTask extends PendingPlannerItem {
   @override
   String get name => task.name;
 
-  @override
   int get durationMinutes => task.durationMinutes;
 }
 
@@ -39,8 +38,15 @@ class PendingHabit extends PendingPlannerItem {
   @override
   String get name => habit.name;
 
-  @override
   int get durationMinutes => habit.durationMinutes;
+}
+
+/// Blocked time takes over the selected slot as is.
+class PendingBlockedTime extends PendingPlannerItem {
+  const PendingBlockedTime(this.name);
+
+  @override
+  final String name;
 }
 
 /// A block already saved in the planner that is being edited.
@@ -82,9 +88,25 @@ class EditingHabitOccurrence extends EditingPlannerItem {
   DateTime get endTime => occurrence.endTime!;
 }
 
+class EditingBlockedTime extends EditingPlannerItem {
+  const EditingBlockedTime(this.blockedTime);
+
+  final BlockedTime blockedTime;
+
+  @override
+  String get name => blockedTime.name;
+
+  @override
+  DateTime get startTime => blockedTime.startTime;
+
+  @override
+  DateTime get endTime => blockedTime.endTime;
+}
+
 typedef PlannerState = ({
   List<ScheduledTask> scheduledTasks,
   List<HabitOccurrence> placedHabits,
+  List<BlockedTime> blockedTimes,
 });
 
 typedef PlannerViewState = ({
@@ -98,8 +120,11 @@ final plannerStateProvider =
     Provider.family<AsyncValue<PlannerState>, DateTime>((ref, date) {
       final tasksAsync = ref.watch(scheduledTasksForDayProvider(date));
       final habitsAsync = ref.watch(placedHabitOccurrencesForDayProvider(date));
+      final blockedAsync = ref.watch(blockedTimesForDayProvider(date));
 
-      if (tasksAsync.isLoading || habitsAsync.isLoading) {
+      if (tasksAsync.isLoading ||
+          habitsAsync.isLoading ||
+          blockedAsync.isLoading) {
         return const AsyncLoading();
       }
       if (tasksAsync.hasError) {
@@ -108,10 +133,14 @@ final plannerStateProvider =
       if (habitsAsync.hasError) {
         return AsyncError(habitsAsync.error!, habitsAsync.stackTrace!);
       }
+      if (blockedAsync.hasError) {
+        return AsyncError(blockedAsync.error!, blockedAsync.stackTrace!);
+      }
 
       return AsyncData((
         scheduledTasks: tasksAsync.requireValue,
         placedHabits: habitsAsync.requireValue,
+        blockedTimes: blockedAsync.requireValue,
       ));
     });
 
@@ -179,6 +208,17 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
     );
   }
 
+  void handleSelectExistingBlockedTime(BlockedTime blockedTime) {
+    _set(
+      selectedTimeSlot: (
+        startTime: blockedTime.startTime,
+        endTime: blockedTime.endTime,
+      ),
+      clearPending: true,
+      editingItem: EditingBlockedTime(blockedTime),
+    );
+  }
+
   TimeSlot _defaultSlot(int durationMinutes) {
     final current = state.selectedTimeSlot;
     final start = current?.startTime ?? state.selectedDay;
@@ -203,6 +243,13 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
       selectedTimeSlot: _defaultSlot(habit.durationMinutes),
       pendingItem: PendingHabit(habit),
     );
+  }
+
+  /// Picks blocked time with [name] for the active slot, keeping its times.
+  void handleAddBlockedTimeToPlan(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || state.selectedTimeSlot == null) return;
+    _set(pendingItem: PendingBlockedTime(trimmed));
   }
 
   void handleItemCleared() {
@@ -239,10 +286,7 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
         if (existing != null) {
           IsarDataStore.updateHabitOccurrence(
             existing.id,
-            existing.copyWith(
-              startTime: slot.startTime,
-              endTime: slot.endTime,
-            ),
+            existing.copyWith(startTime: slot.startTime, endTime: slot.endTime),
           );
         } else {
           IsarDataStore.addHabitOccurrence(
@@ -254,6 +298,14 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
             ),
           );
         }
+      case PendingBlockedTime(:final name):
+        IsarDataStore.addBlockedTime(
+          BlockedTime(
+            name: name,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          ),
+        );
     }
 
     resetTimeSlot();
@@ -279,6 +331,14 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
           occurrence.id,
           occurrence.copyWith(startTime: slot.startTime, endTime: slot.endTime),
         );
+      case EditingBlockedTime(:final blockedTime):
+        IsarDataStore.updateBlockedTime(
+          blockedTime.id,
+          blockedTime.copyWith(
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          ),
+        );
     }
 
     resetTimeSlot();
@@ -301,8 +361,21 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
     _set(editingItem: EditingScheduledTask(updated));
   }
 
-  /// Removes the edited block from the planner. Scheduled tasks are deleted;
-  /// habit blocks keep their completion state but lose their time slot.
+  void handleRenameBlockedTime(String name) {
+    final editing = state.editingItem;
+    final trimmed = name.trim();
+    if (editing is! EditingBlockedTime || trimmed.isEmpty) return;
+
+    final updated = editing.blockedTime.copyWith(name: trimmed);
+    IsarDataStore.updateBlockedTime(editing.blockedTime.id, updated);
+
+    // Keep the bar open with the refreshed block so time slot edits still work.
+    _set(editingItem: EditingBlockedTime(updated));
+  }
+
+  /// Removes the edited block from the planner. Scheduled tasks and blocked
+  /// time are deleted; habit blocks keep their completion state but lose their
+  /// time slot.
   void handleDeleteEditedItem() {
     final editing = state.editingItem;
     if (editing == null) return;
@@ -319,6 +392,8 @@ class PlannerViewStateNotifier extends Notifier<PlannerViewState> {
         } else {
           IsarDataStore.deleteHabitOccurrence(occurrence);
         }
+      case EditingBlockedTime(:final blockedTime):
+        IsarDataStore.deleteBlockedTime(blockedTime);
     }
 
     resetTimeSlot();

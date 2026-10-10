@@ -73,7 +73,7 @@ class _DashboardNotesState extends ConsumerState<DashboardNotes> {
             const SizedBox(width: 8),
           ],
           Text(
-            notes.isEmpty ? 'SCRATCHPAD' : '$done / ${notes.length} DONE',
+            '$done / ${notes.length} DONE',
             style: GoogleFonts.jetBrainsMono(
               color: CadenceColors.textSecondary,
               fontSize: 10,

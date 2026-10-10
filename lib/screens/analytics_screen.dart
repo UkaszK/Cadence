@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:cadence/data/analytics_metrics.dart';
 import 'package:cadence/providers/analytics_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
-import 'package:cadence/widgets/achievements_screen/achievements_preview.dart';
 import 'package:cadence/widgets/analytics_screen/analytics_overview_tiles.dart';
 import 'package:cadence/widgets/analytics_screen/category_breakdown.dart';
 import 'package:cadence/widgets/analytics_screen/daily_completion_chart.dart';
@@ -43,26 +42,22 @@ class AnalyticsScreen extends ConsumerWidget {
           ),
           FadeInTransition(
             delay: const Duration(milliseconds: 150),
-            child: const AchievementsPreview(),
-          ),
-          FadeInTransition(
-            delay: const Duration(milliseconds: 200),
             child: DailyCompletionChart(metrics: metrics),
           ),
           FadeInTransition(
-            delay: const Duration(milliseconds: 250),
+            delay: const Duration(milliseconds: 200),
             child: WeekdayPerformanceChart(metrics: metrics),
           ),
           FadeInTransition(
-            delay: const Duration(milliseconds: 300),
+            delay: const Duration(milliseconds: 250),
             child: CategoryBreakdown(metrics: metrics),
           ),
           FadeInTransition(
-            delay: const Duration(milliseconds: 350),
+            delay: const Duration(milliseconds: 300),
             child: HabitConsistency(metrics: metrics),
           ),
           FadeInTransition(
-            delay: const Duration(milliseconds: 400),
+            delay: const Duration(milliseconds: 350),
             child: ScheduleDistribution(metrics: metrics),
           ),
         ],

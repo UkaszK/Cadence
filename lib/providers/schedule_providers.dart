@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/daily_progress_metrics.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/habit_occurrence.dart';
@@ -15,6 +16,10 @@ import 'package:cadence/utils/habit_schedule.dart';
 
 final scheduledTasksProvider = StreamProvider<List<ScheduledTask>>((ref) {
   return IsarDataStore.watchAllScheduledTasks();
+});
+
+final blockedTimesProvider = StreamProvider<List<BlockedTime>>((ref) {
+  return IsarDataStore.watchAllBlockedTimes();
 });
 
 final habitOccurrencesProvider = StreamProvider<List<HabitOccurrence>>((ref) {
@@ -36,6 +41,32 @@ final scheduledTasksForDayProvider =
             .sorted((a, b) => a.compareTo(b));
       });
     });
+
+/// Blocked times on a specific date, sorted chronologically.
+final blockedTimesForDayProvider =
+    Provider.family<AsyncValue<List<BlockedTime>>, DateTime>((ref, date) {
+      final asyncBlockedTimes = ref.watch(blockedTimesProvider);
+
+      return asyncBlockedTimes.whenData((blockedTimes) {
+        return blockedTimes
+            .where((b) => DateUtils.isSameDay(b.startTime, date))
+            .sorted((a, b) => a.compareTo(b));
+      });
+    });
+
+/// Distinct blocked time names, most recently planned first. Offered as quick
+/// picks since blocked times aren't kept in the Library.
+final recentBlockedTimeNamesProvider = Provider<AsyncValue<List<String>>>((
+  ref,
+) {
+  return ref.watch(blockedTimesProvider).whenData((blockedTimes) {
+    final seen = <String>{};
+    return [
+      for (final b in blockedTimes.sorted((a, b) => b.compareTo(a)))
+        if (seen.add(b.name.toLowerCase())) b.name,
+    ];
+  });
+});
 
 /// Habit occurrence records (completed and/or placed) for a specific date.
 final habitOccurrencesForDayProvider =

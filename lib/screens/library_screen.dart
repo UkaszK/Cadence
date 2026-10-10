@@ -141,7 +141,7 @@ class _TaskList extends ConsumerWidget {
 
     if (tasksByCategory.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.only(top: 96),
+        padding: EdgeInsets.only(top: 96, bottom: 16),
         child: LibraryEmptyNote(
           title: 'NO TASKS',
           subtitle: 'YOUR TASK LIBRARY IS EMPTY',

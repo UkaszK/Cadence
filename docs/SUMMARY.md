@@ -2,9 +2,9 @@
 
 ## Zweck
 
-Cadence ist eine mobile Flutter-App für die Planung des Tages und die Auswertung von Routinen. Arbeit wird in einer Bibliothek aus **Tasks** (Aufgaben) und **Habits** (Gewohnheiten) verwaltet. Pro Tag entsteht daraus ein **Plan** auf einer Zeitleiste; Streaks und Achievements ergänzen den Alltag um einen gleichmäßigen Rhythmus.
+Cadence ist eine mobile Flutter-App für die Planung des Tages und die Auswertung von Routinen. Arbeit wird in einer Bibliothek aus **Tasks** (Aufgaben) und **Habits** (Gewohnheiten) verwaltet. Pro Tag entsteht daraus ein **Plan** auf einer Zeitleiste.
 
-Die App arbeitet lokal auf dem Gerät. Aufgaben, Gewohnheiten, Tagesplanung, Fortschritt und freigeschaltete Achievements werden in einer lokalen Isar-Datenbank gespeichert.
+Die App arbeitet lokal auf dem Gerät. Aufgaben, Gewohnheiten, Tagesplanung und Notizen werden in einer lokalen Isar-Datenbank gespeichert.
 
 ## Technischer Aufbau
 
@@ -16,6 +16,7 @@ Die App arbeitet lokal auf dem Gerät. Aufgaben, Gewohnheiten, Tagesplanung, For
 | Persistenz | Isar (`isar`, `isar_flutter_libs`) |
 | Statistiken | `fl_chart` |
 | Typografie | `google_fonts`, unter anderem JetBrains Mono |
+| App-Version | `package_info_plus` |
 | Icons und Assets | Material Icons und SVGs in `assets/icons/` |
 
 ## Einstiegspunkt und App-Lifecycle
@@ -53,7 +54,7 @@ Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tage
 ### Hauptnavigation
 
 - **Dashboard:** Tagesansicht mit Datumsauswahl, täglichem Fortschritt, dem Plan des Tages (geplante Tasks und platzierte Habits in zeitlicher Reihenfolge) sowie einer Habit-Checkliste aller an diesem Tag erwarteten Gewohnheiten. Tasks mit Fälligkeitsdatum werden nach Abschluss automatisch archiviert (mit Undo).
-- **Planner:** Visuelle Tagesplanung über Zeitblöcke. Tasks und erwartete Habits können einem Zeitfenster zugeordnet, verschoben oder entfernt werden. Überschneidungen werden erkannt.
+- **Planner:** Visuelle Tagesplanung über Zeitblöcke. Tasks und erwartete Habits können einem Zeitfenster zugeordnet, verschoben oder entfernt werden. Überschneidungen werden erkannt. Eine optionale geplante Schlafenszeit wird als rein visuelles Band auf der Zeitleiste angezeigt.
 - **Analytics:** Auswertungen für einen wählbaren Zeitraum mit Kennzahlen und Diagrammen.
 - **Library:** Tasks und Habits in getrennten Tabs, gruppiert nach Kategorien. Tasks sind filterbar (alle, hohe Priorität, heute fällig, einmalig); archivierte Einträge lassen sich einblenden und wiederherstellen.
 
@@ -61,8 +62,7 @@ Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tage
 
 - **Task-Formular:** Titel, Kategorie, Dauer, optionales Fälligkeitsdatum, Priorität und Unteraufgaben.
 - **Habit-Formular:** Titel, Kategorie, Dauer und Zeitplan – entweder an ausgewählten Wochentagen oder alle N Tage ab einem Startdatum.
-- **Achievements:** Übersicht der Badges, Fortschrittsanzeige und Streak-Darstellung.
-- **Settings:** Vorbereiteter Einstellungs-Screen.
+- **Settings:** Über das Zahnrad-Icon in der oberen App-Bar erreichbar. Geplante Schlafens- und Aufwachzeit sowie deren Anzeige im Planner; unten wird die installierte Cadence-Version angezeigt.
 - Wiederverwendbare Komponenten für App-Bar, Navigation, FAB, Buttons, Dropdowns, Choice Chips, Switches, Badges, Ladezustände und Screen-Container.
 
 ## Domänenmodell
@@ -73,14 +73,13 @@ Das Icon visualisiert „Cadence“ als Rhythmus und die Strukturierung des Tage
 - `Habit`: Gewohnheit mit Kategorie, Dauer, Zeitplan (`weekdays` mit Wochentagen oder `interval` mit N Tagen und Ankerdatum) und Archivstatus.
 - `ScheduledTask`: Zeitblock einer Aufgabe im Plan eines Tages, inklusive Unteraufgaben-Fortschritt und Abschluss.
 - `HabitOccurrence`: Vorkommen einer Gewohnheit an einem Tag; optional mit Zeitfenster im Plan und Abschlusszeitpunkt.
-- `AchievementUnlock`: bereits angekündigte oder freigeschaltete Achievements mit Zeitstempel.
+- `AppSettings`: Einzelner Datensatz mit Benutzereinstellungen, aktuell geplante Schlafens- und Aufwachzeit sowie deren Anzeige im Planner.
 
 ### Unterstützende Typen und Metriken
 
 - Kategorien, Prioritäten, Statuswerte, Tage und Filteroptionen.
 - `isHabitExpectedOn()` entscheidet, ob eine Gewohnheit an einem Datum erwartet wird.
-- Tagesfortschritt, Analytics-Metriken und Gamification-Metriken.
-- Achievement-Katalog mit Definitionen der verfügbaren Badges.
+- Tagesfortschritt und Analytics-Metriken.
 
 Die zugehörigen `*.g.dart`-Dateien werden aus den Isar-Annotationsklassen generiert, sind nicht eingecheckt und sollten nicht manuell bearbeitet werden.
 
@@ -92,12 +91,11 @@ Die Provider liegen in `lib/providers/` und bilden die fachlichen Bereiche ab:
 - Dashboard- und Planner-Zustand einschließlich ausgewähltem Tag, Zeitfenster und ausstehendem/bearbeitetem Element.
 - Library-Zustand mit Tab, Filter und Archiv-Schalter.
 - Analytics-Zeitraum und berechnete Statistiken.
-- Achievement- und Gamification-Zustand.
 - Navigation sowie Formularzustand.
 
 Die Isar-Watcher liefern Änderungen reaktiv an Riverpod. Nicht archivierte Tasks und Habits werden standardmäßig über die jeweiligen Streams geladen.
 
-## Analytics und Gamification
+## Analytics
 
 Die Analytics-Ansicht enthält unter anderem:
 
@@ -107,8 +105,6 @@ Die Analytics-Ansicht enthält unter anderem:
 - Aufschlüsselung nach Kategorien.
 - Konsistenz von Gewohnheiten.
 - Verteilung des Zeitplans.
-
-Die Gamification-Auswertung berechnet Streaks, Badge-Fortschritt und freigeschaltete Achievements. Neue Unlocks werden lokal gespeichert, damit sie nicht wiederholt angekündigt werden.
 
 ## Verzeichnisstruktur
 
@@ -134,7 +130,7 @@ Die Gamification-Auswertung berechnet Streaks, Badge-Fortschritt und freigeschal
 
 ## Entwicklungsstatus
 
-Die Kernfunktionen für Task- und Habit-Verwaltung, Tagesplanung, Library, Analytics und Achievements sind im Quellcode vorhanden. Die Anwendung ist als lokale, mobile Flutter-App ausgelegt. Im Repository ist aktuell kein `test/`-Verzeichnis vorhanden; automatisierte Unit- oder Widget-Tests sind daher noch nicht dokumentiert.
+Die Kernfunktionen für Task- und Habit-Verwaltung, Tagesplanung, Library und Analytics sind im Quellcode vorhanden. Die Anwendung ist als lokale, mobile Flutter-App ausgelegt. Im Repository ist aktuell kein `test/`-Verzeichnis vorhanden; automatisierte Unit- oder Widget-Tests sind daher noch nicht dokumentiert.
 
 ## Relevante Dateien
 

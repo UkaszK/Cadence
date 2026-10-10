@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 
 class CadenceAppBar extends AppBar {
-  CadenceAppBar({super.key})
+  CadenceAppBar({super.key, super.actions})
     : super(
         title: const Text('CADENCE'),
+        actionsPadding: const EdgeInsets.only(right: 8),
         titleTextStyle: GoogleFonts.jetBrainsMono(
           fontSize: 18,
           fontWeight: FontWeight.w700,

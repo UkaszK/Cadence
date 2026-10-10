@@ -59,20 +59,23 @@ class HabitChecklistBlock extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AnimatedDefaultTextStyle(
-                  duration: AnimationDurations.fast,
-                  curve: CadenceMotion.enter,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.jetBrainsMono(
-                    color: completed
-                        ? CadenceColors.textSecondary
-                        : CadenceColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    decoration: completed ? TextDecoration.lineThrough : null,
+                InkWell(
+                  onTap: () => onCheck(!completed),
+                  child: AnimatedDefaultTextStyle(
+                    duration: AnimationDurations.fast,
+                    curve: CadenceMotion.enter,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.jetBrainsMono(
+                      color: completed
+                          ? CadenceColors.textSecondary
+                          : CadenceColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      decoration: completed ? TextDecoration.lineThrough : null,
+                    ),
+                    child: Text(habit.name),
                   ),
-                  child: Text(habit.name),
                 ),
 
                 const SizedBox(height: 3),
