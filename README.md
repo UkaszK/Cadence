@@ -10,6 +10,7 @@ In a few selected cases, AI-assisted tools supported the development and documen
 
 ## Features
 
+- **Navigation:** Tap the currently selected bottom tab to scroll that page back to the top. Switching tabs preserves each page's scroll position.
 - **Dashboard:** Daily view with date selection, daily progress, the day's Plan (scheduled tasks, placed habits, and blocked time in timeline order), and a Habits checklist of everything expected that day. Tasks with a due date are archived automatically once completed, with an Undo action.
 - **Planner:** Time-based daily planning with editable time slots, overlap detection, and a sheet to drop a task, an expected habit, or blocked time into a slot. Blocked time (e.g. eating or driving to work) reserves a slot without being kept in the Library; it has only a name, can't be checked off, and doesn't count toward progress or analytics. The header shows how much free time is left in the day after sleep and all planned blocks. Night hours are drawn at a smaller scale unless something is planned in them. While dragging, the page automatically scrolls when the block's leading edge (or the handle being resized) approaches the top or bottom of the visible page, regardless of where you hold the block. An optional planned sleep time is shown as a band on the timeline.
 - **Library:** Tasks and Habits in separate tabs, grouped by category. Tasks can be filtered (all, high priority, due today, one-off); archived items can be shown and restored. "Plan today" sends a task straight to the Planner.

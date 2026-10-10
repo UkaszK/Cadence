@@ -649,6 +649,7 @@ class _CadenceTabSwitcherState extends State<CadenceTabSwitcher>
           children: [
             for (final i in paintOrder)
               Positioned.fill(
+                key: ValueKey(i),
                 child: Offstage(
                   offstage: i != _current && i != _outgoing,
                   child: IgnorePointer(

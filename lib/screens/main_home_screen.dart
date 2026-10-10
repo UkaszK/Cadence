@@ -12,7 +12,7 @@ import 'package:cadence/widgets/cadence_app_bar.dart';
 import 'package:cadence/widgets/cadence_fab.dart';
 import 'package:cadence/widgets/cadence_navigation_bar.dart';
 
-class MainHomeScreen extends ConsumerWidget {
+class MainHomeScreen extends ConsumerStatefulWidget {
   const MainHomeScreen({super.key});
 
   static const List<Widget> _pages = [
@@ -23,9 +23,47 @@ class MainHomeScreen extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainHomeScreen> createState() => _MainHomeScreenState();
+}
+
+class _MainHomeScreenState extends ConsumerState<MainHomeScreen> {
+  final _scrollControllers = [
+    for (final _ in MainHomeScreen._pages) ScrollController(),
+  ];
+
+  @override
+  void dispose() {
+    for (final controller in _scrollControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onDestinationSelected(int index) {
+    if (index != ref.read(navigationProvider)) {
+      ref.read(navigationProvider.notifier).setIndex(index);
+      return;
+    }
+
+    final controller = _scrollControllers[index];
+    if (!controller.hasClients) return;
+
+    final top = controller.position.minScrollExtent;
+    final duration = CadenceMotion.of(context, AnimationDurations.medium);
+    if (duration == Duration.zero) {
+      controller.jumpTo(top);
+    } else {
+      controller.animateTo(
+        top,
+        duration: duration,
+        curve: CadenceMotion.standard,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationProvider);
-    final notifier = ref.read(navigationProvider.notifier);
 
     return Scaffold(
       extendBody: true,
@@ -42,10 +80,20 @@ class MainHomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: CadenceTabSwitcher(index: currentIndex, children: _pages),
+      body: CadenceTabSwitcher(
+        index: currentIndex,
+        children: [
+          for (var i = 0; i < MainHomeScreen._pages.length; i++)
+            PrimaryScrollController(
+              controller: _scrollControllers[i],
+              automaticallyInheritForPlatforms: TargetPlatform.values.toSet(),
+              child: MainHomeScreen._pages[i],
+            ),
+        ],
+      ),
       bottomNavigationBar: CadenceNavigationBar(
         selectedIndex: currentIndex,
-        onDestinationSelected: notifier.setIndex,
+        onDestinationSelected: _onDestinationSelected,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: const CadenceFAB(),

@@ -23,21 +23,8 @@ import 'package:cadence/widgets/planner_screen/planner.dart';
 import 'package:cadence/widgets/cadence_loading_screen.dart';
 import 'package:cadence/widgets/library_screen/task_block.dart';
 
-class PlannerScreen extends ConsumerStatefulWidget {
+class PlannerScreen extends ConsumerWidget {
   const PlannerScreen({super.key});
-
-  @override
-  ConsumerState<PlannerScreen> createState() => _PlannerScreenState();
-}
-
-class _PlannerScreenState extends ConsumerState<PlannerScreen> {
-  final _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   bool _hasOverlap(
     List<ScheduledTask> scheduledTasks,
@@ -93,7 +80,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = PrimaryScrollController.of(context);
     final notifier = ref.read(plannerViewStateNotifierProvider.notifier);
     final viewState = ref.watch(plannerViewStateNotifierProvider);
     final selectedDay = viewState.selectedDay;
@@ -151,7 +139,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               children: [
                 Positioned.fill(
                   child: SingleChildScrollView(
-                    controller: _scrollController,
+                    controller: scrollController,
                     padding: EdgeInsets.only(
                       top: 20,
                       left: 16,
@@ -192,7 +180,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                         FadeInTransition(
                           delay: const Duration(milliseconds: 150),
                           child: Planner(
-                            scrollController: _scrollController,
+                            scrollController: scrollController,
                             baseDate: baseDate,
                             scheduledTasks: state.scheduledTasks,
                             placedHabits: state.placedHabits,
