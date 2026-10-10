@@ -5,6 +5,7 @@ import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
 import 'package:cadence/providers/planner_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
+import 'package:cadence/utils/planner_time_scale.dart';
 import 'package:cadence/utils/sleep_time.dart';
 import 'package:cadence/widgets/planner_screen/interactive_block_widget.dart';
 import 'package:cadence/widgets/planner_screen/planner_block_widget.dart';
@@ -50,6 +51,7 @@ class Planner extends StatefulWidget {
     required this.onSelectExistingTask,
     required this.onSelectExistingHabit,
     this.sleepRanges = const [],
+    this.compressedRanges = const [],
   });
 
   final DateTime baseDate;
@@ -70,12 +72,15 @@ class Planner extends StatefulWidget {
   /// Planned sleep shown as a purely visual band behind the timeline.
   final List<SleepRange> sleepRanges;
 
+  /// Ranges drawn at a reduced scale unless something is planned in them.
+  final List<MinuteRange> compressedRanges;
+
   @override
   State<Planner> createState() => _PlannerState();
 }
 
 class _PlannerState extends State<Planner> {
-  static const _pixelsPerMinute = 1.0;
+  static const _topPadding = 30.0;
   static const _leftOffset = 70.0;
   static const _rightOffset = 15.0;
   static const _dragStepMinutes = 5;
@@ -84,8 +89,29 @@ class _PlannerState extends State<Planner> {
   static const _defaultSlotMinutes = 60;
   static const _minSlotMinutes = 15;
 
+  /// Scale of the last build, including the expanded selected slot.
+  late PlannerTimeScale _scale;
+
   DateTime get _endOfDay =>
       widget.baseDate.add(const Duration(hours: 23, minutes: 59));
+
+  int _minuteOfDay(DateTime time) =>
+      time.difference(widget.baseDate).inMinutes.clamp(0, minutesPerDay);
+
+  MinuteRange _rangeOf(DateTime start, DateTime end) =>
+      (start: _minuteOfDay(start), end: _minuteOfDay(end));
+
+  /// Scale without the selected slot. It stays stable while the slot is
+  /// dragged, so drag distances can be converted to minutes consistently.
+  PlannerTimeScale _baseScale() {
+    return PlannerTimeScale(
+      compressed: widget.compressedRanges,
+      expanded: [
+        for (final block in _occupiedBlocks())
+          if (!_isBeingEdited(block)) _rangeOf(block.startTime, block.endTime),
+      ],
+    );
+  }
 
   void _selectSlot(DateTime start, DateTime end) {
     widget.onSelectTimeSlot((startTime: start, endTime: end));
@@ -103,7 +129,7 @@ class _PlannerState extends State<Planner> {
   /// to [_defaultSlotMinutes] unless an existing block or the end of the day
   /// comes first. Taps inside an occupied range are ignored.
   void _handleFreeTimeTap(double localDy) {
-    final rawMinutes = (localDy - _blocksOffsetY) / _pixelsPerMinute;
+    final rawMinutes = _scale.minuteAt(localDy - _blocksOffsetY);
     final snapped = (rawMinutes / _tapSnapMinutes).floor() * _tapSnapMinutes;
     if (snapped < 0) return;
 
@@ -170,22 +196,41 @@ class _PlannerState extends State<Planner> {
   Widget _buildTimeGrid() {
     List<Widget> gridElements = [];
 
-    gridElements.add(
-      Positioned(
-        left: _leftOffset,
-        top: 0,
-        bottom: 0,
-        child: Container(width: 1, color: CadenceColors.textSecondary),
-      ),
-    );
+    // The axis is dimmed where time is compressed so the uneven scale shows.
+    for (final segment in _scale.segments) {
+      final top = segment.start == 0
+          ? 0.0
+          : _scale.yOf(segment.start) + _blocksOffsetY;
+      final bottom = segment.end == minutesPerDay
+          ? _scale.height + _blocksOffsetY * 2
+          : _scale.yOf(segment.end) + _blocksOffsetY;
+      gridElements.add(
+        Positioned(
+          left: _leftOffset,
+          top: top,
+          height: bottom - top,
+          child: Container(
+            width: 1,
+            color: segment.compressed
+                ? CadenceColors.textSecondary.withValues(alpha: 0.3)
+                : CadenceColors.textSecondary,
+          ),
+        ),
+      );
+    }
 
-    for (int hour = widget.baseDate.hour; hour <= 24; hour += 2) {
-      double topPosition =
-          (hour - widget.baseDate.hour) * 60 * _pixelsPerMinute;
+    for (int hour = 0; hour <= 24; hour += 2) {
+      final minute = hour * 60;
+      final isCompressed =
+          _scale.isCompressedAt(minute) &&
+          (minute == 0 || _scale.isCompressedAt(minute - 1));
+      final labelColor = isCompressed
+          ? CadenceColors.textSecondary.withValues(alpha: 0.5)
+          : CadenceColors.textSecondary;
 
       gridElements.add(
         Positioned(
-          top: topPosition,
+          top: _scale.yOf(minute),
           left: 10,
           child: Row(
             children: [
@@ -195,7 +240,7 @@ class _PlannerState extends State<Planner> {
                   '${hour.toString().padLeft(2, '0')}:00',
                   maxLines: 1,
                   style: GoogleFonts.jetBrainsMono(
-                    color: CadenceColors.textSecondary,
+                    color: labelColor,
                     fontSize: 11,
                   ),
                 ),
@@ -207,10 +252,7 @@ class _PlannerState extends State<Planner> {
                 width: 11,
                 height: 1,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: CadenceColors.textSecondary,
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: labelColor, width: 1.5),
                 ),
               ),
             ],
@@ -228,12 +270,11 @@ class _PlannerState extends State<Planner> {
     double inset = 0,
     required Widget child,
   }) {
-    int minutesFromStart = start.difference(widget.baseDate).inMinutes;
-    int duration = end.difference(start).inMinutes;
+    final startY = _scale.yOf(_minuteOfDay(start));
+    final endY = _scale.yOf(_minuteOfDay(end));
 
-    double topPosition =
-        minutesFromStart * _pixelsPerMinute + _blocksOffsetY + inset;
-    double height = duration * _pixelsPerMinute - inset * 2;
+    double topPosition = startY + _blocksOffsetY + inset;
+    double height = endY - startY - inset * 2;
 
     return Positioned(
       top: topPosition,
@@ -321,9 +362,8 @@ class _PlannerState extends State<Planner> {
   }
 
   Widget _buildSleepBand(SleepRange range) {
-    final dayStart = widget.baseDate.hour * 60;
-    final start = (range.start - dayStart).clamp(0, minutesPerDay);
-    final end = (range.end - dayStart).clamp(0, minutesPerDay);
+    final start = range.start.clamp(0, minutesPerDay);
+    final end = range.end.clamp(0, minutesPerDay);
     if (end <= start) return const SizedBox.shrink();
 
     final reachesDayStart = range.start == 0;
@@ -336,10 +376,11 @@ class _PlannerState extends State<Planner> {
         ? 'BEDTIME · ${formatMinutesOfDay(range.start)}'
         : 'SLEEP · ${formatMinutesOfDay(range.start)} – '
               '${formatMinutesOfDay(range.end)}';
-    final height = (end - start) * _pixelsPerMinute;
+    final startY = _scale.yOf(start);
+    final height = _scale.yOf(end) - startY;
 
     return Positioned(
-      top: start * _pixelsPerMinute + _blocksOffsetY,
+      top: startY + _blocksOffsetY,
       height: height,
       left: _leftOffset + 1,
       right: 0,
@@ -390,7 +431,11 @@ class _PlannerState extends State<Planner> {
     );
   }
 
-  Widget _buildInteractiveSlotBlock(DateTime start, DateTime end) {
+  Widget _buildInteractiveSlotBlock(
+    DateTime start,
+    DateTime end,
+    PlannerTimeScale baseScale,
+  ) {
     final slotColor = widget.hasOverlap
         ? CadenceColors.danger
         : CadenceColors.accent;
@@ -406,17 +451,19 @@ class _PlannerState extends State<Planner> {
         color: slotColor,
         onUpdateTimeSlot: widget.onUpdateTimeSlot,
         dragStepMinutes: _dragStepMinutes,
+        timeScale: baseScale,
       ),
     );
   }
 
-  Widget _buildSpecificBlock(_TimelineBlock block) {
+  Widget _buildSpecificBlock(_TimelineBlock block, PlannerTimeScale baseScale) {
     return switch (block) {
       _TaskBlock(:final scheduledTask) => _buildTaskBlock(scheduledTask),
       _HabitBlock(:final occurrence) => _buildHabitBlock(occurrence),
       _InteractiveBlock() => _buildInteractiveSlotBlock(
         block.startTime,
         block.endTime,
+        baseScale,
       ),
     };
   }
@@ -424,25 +471,28 @@ class _PlannerState extends State<Planner> {
   @override
   Widget build(BuildContext context) {
     final blocks = _generateTimelineBlocks();
+    final baseScale = _baseScale();
+    final slot = widget.selectedTimeSlot;
+    _scale = slot == null
+        ? baseScale
+        : baseScale.withExpanded([_rangeOf(slot.startTime, slot.endTime)]);
     final bool allowTapToCreate =
         widget.canCreateSlot && widget.selectedTimeSlot == null;
     final bool isDayEmpty =
         widget.scheduledTasks.isEmpty && widget.placedHabits.isEmpty;
 
     return Padding(
-      padding: EdgeInsets.only(top: 30, bottom: 150),
+      padding: EdgeInsets.only(top: _topPadding, bottom: 150),
       child: SizedBox(
         width: double.infinity,
-        height:
-            (24 - widget.baseDate.hour) * 60 * _pixelsPerMinute +
-            _blocksOffsetY * 2,
+        height: _scale.height + _blocksOffsetY * 2,
         child: Stack(
           children: [
             _buildTimeGrid(),
             for (final range in widget.sleepRanges) _buildSleepBand(range),
             if (allowTapToCreate) _buildFreeTimeTapLayer(),
             if (allowTapToCreate && isDayEmpty) _buildEmptyDayHint(),
-            for (final block in blocks) _buildSpecificBlock(block),
+            for (final block in blocks) _buildSpecificBlock(block, baseScale),
           ],
         ),
       ),

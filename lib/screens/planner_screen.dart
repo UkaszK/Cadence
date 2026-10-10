@@ -2,6 +2,7 @@ import 'package:cadence/utils/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/data/app_settings.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
@@ -79,9 +80,14 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     final bool hasTimeSlot = selectedTimeSlot != null;
     final String pendingItemName = pendingItem?.name ?? editingItem?.name ?? '';
     final settings = ref.watch(settingsProvider).value;
-    final sleepRanges = settings != null && settings.sleepEnabled
+    final sleepEnabled = settings != null && settings.sleepEnabled;
+    final sleepRanges = sleepEnabled
         ? sleepRangesForDay(settings.bedtimeMinutes, settings.wakeUpMinutes)
         : const <SleepRange>[];
+    // Night hours are compressed even when sleep isn't shown in the planner.
+    final nightRanges = sleepEnabled
+        ? sleepRanges
+        : sleepRangesForDay(defaultBedtimeMinutes, defaultWakeUpMinutes);
 
     Future<void> editTaskDetails(ScheduledTask scheduledTask) async {
       final details = await showEditScheduledTaskSheet(context, scheduledTask);
@@ -157,6 +163,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                             onSelectExistingHabit:
                                 notifier.handleSelectExistingHabitOccurrence,
                             sleepRanges: sleepRanges,
+                            compressedRanges: nightRanges,
                           ),
                         ),
                       ],

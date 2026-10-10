@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/time_slot.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/utils/get_time_text.dart';
+import 'package:cadence/utils/planner_time_scale.dart';
 
 class InteractiveBlockWidget extends StatefulWidget {
   const InteractiveBlockWidget({
@@ -15,6 +16,7 @@ class InteractiveBlockWidget extends StatefulWidget {
     required this.color,
     required this.onUpdateTimeSlot,
     required this.dragStepMinutes,
+    required this.timeScale,
   });
 
   final ScrollController scrollController;
@@ -24,6 +26,12 @@ class InteractiveBlockWidget extends StatefulWidget {
   final Color color;
   final ValueChanged<TimeSlot> onUpdateTimeSlot;
   final int dragStepMinutes;
+
+  /// Timeline scale without this block. Moving the block or its top edge is
+  /// converted to minutes through it so the block follows the finger even in
+  /// compressed ranges. The block itself is always drawn at normal scale, so
+  /// the bottom edge maps pixels to minutes directly.
+  final PlannerTimeScale timeScale;
 
   @override
   State<InteractiveBlockWidget> createState() => _InteractiveBlockWidgetState();
@@ -156,12 +164,23 @@ class _InteractiveBlockWidgetState extends State<InteractiveBlockWidget>
   }
 
   void _accumulateFreeDrag(double delta) {
-    _dragAccumulator += delta;
-    final minutes = _dragAccumulator.round();
-    if (minutes == 0) return;
+    final minutes = _consumeScaledDrag(delta);
+    if (minutes != 0) _moveBlock(minutes);
+  }
 
-    _dragAccumulator -= minutes;
-    _moveBlock(minutes);
+  /// Converts accumulated drag pixels at the block's start into whole minutes
+  /// along [InteractiveBlockWidget.timeScale].
+  int _consumeScaledDrag(double delta) {
+    _dragAccumulator += delta;
+    final scale = widget.timeScale;
+    final startMinute = _startTime.difference(widget.baseDate).inMinutes;
+    final startY = scale.yOf(startMinute);
+    final minutes = (scale.minuteAt(startY + _dragAccumulator) - startMinute)
+        .round();
+    if (minutes == 0) return 0;
+
+    _dragAccumulator -= scale.yOf(startMinute + minutes) - startY;
+    return minutes;
   }
 
   void _startDrag(ValueChanged<double> onEdgeScroll, {bool? resizeTop}) {
@@ -305,12 +324,12 @@ class _InteractiveBlockWidgetState extends State<InteractiveBlockWidget>
       right: 0,
       child: GestureDetector(
         onVerticalDragStart: (_) => _startDrag(
-          (delta) => _accumulateFreeDragFor(delta, onStep),
+          (delta) => _accumulateFreeDragFor(delta, onStep, scaled: top),
           resizeTop: top,
         ),
         onVerticalDragUpdate: (details) {
           _updateDragDirection(details.delta.dy);
-          _accumulateFreeDragFor(details.delta.dy, onStep);
+          _accumulateFreeDragFor(details.delta.dy, onStep, scaled: top);
         },
         onVerticalDragEnd: (_) {
           _stopDrag();
@@ -332,7 +351,17 @@ class _InteractiveBlockWidgetState extends State<InteractiveBlockWidget>
     );
   }
 
-  void _accumulateFreeDragFor(double delta, void Function(int) onStep) {
+  void _accumulateFreeDragFor(
+    double delta,
+    void Function(int) onStep, {
+    required bool scaled,
+  }) {
+    if (scaled) {
+      final minutes = _consumeScaledDrag(delta);
+      if (minutes != 0) onStep(minutes);
+      return;
+    }
+
     _dragAccumulator += delta;
     final minutes = _dragAccumulator.round();
     if (minutes == 0) return;
