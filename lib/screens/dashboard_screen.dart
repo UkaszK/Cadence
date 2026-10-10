@@ -167,6 +167,7 @@ class DashboardScreen extends ConsumerWidget {
                     DashboardPlan(
                       scheduledTasks: state.scheduledTasks,
                       placedHabits: state.placedHabits,
+                      blockedTimes: state.blockedTimes,
                       onCheckScheduledTask: (scheduledTask, newValue) {
                         final archived = notifier.checkScheduledTask(
                           scheduledTask,

@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/daily_progress_metrics.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/habit_occurrence.dart';
@@ -14,6 +15,7 @@ typedef DashboardState = ({
   List<ScheduledTask> scheduledTasks,
   List<HabitOccurrence> habitOccurrences,
   List<HabitOccurrence> placedHabits,
+  List<BlockedTime> blockedTimes,
   List<Habit> expectedHabits,
   Set<int> completedHabitIds,
   DailyProgressMetrics progress,
@@ -30,6 +32,7 @@ final dashboardStateProvider =
         ref.watch(expectedHabitsForDayProvider(normalizedDate)),
         ref.watch(completedHabitIdsForDayProvider(normalizedDate)),
         ref.watch(dailyProgressForDayProvider(normalizedDate)),
+        ref.watch(blockedTimesForDayProvider(normalizedDate)),
       ];
 
       if (states.any((state) => state.isLoading)) {
@@ -47,6 +50,7 @@ final dashboardStateProvider =
         expectedHabits: states[3].requireValue as List<Habit>,
         completedHabitIds: states[4].requireValue as Set<int>,
         progress: states[5].requireValue as DailyProgressMetrics,
+        blockedTimes: states[6].requireValue as List<BlockedTime>,
       ));
     });
 

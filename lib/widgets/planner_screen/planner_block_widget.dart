@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 
-/// A block on the planner timeline. Used for both scheduled tasks and placed
-/// habit occurrences.
+/// A block on the planner timeline. Used for scheduled tasks, placed habit
+/// occurrences and blocked time.
 class PlannerBlockWidget extends StatelessWidget {
   const PlannerBlockWidget({
     super.key,
@@ -13,6 +13,7 @@ class PlannerBlockWidget extends StatelessWidget {
     required this.color,
     this.description = '',
     this.isHabit = false,
+    this.isBlocked = false,
     required this.onTap,
   });
 
@@ -22,6 +23,7 @@ class PlannerBlockWidget extends StatelessWidget {
   final Color color;
   final String description;
   final bool isHabit;
+  final bool isBlocked;
   final VoidCallback onTap;
 
   bool get _hasDescription => description.isNotEmpty;
@@ -35,7 +37,11 @@ class PlannerBlockWidget extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isHabit ? color.withValues(alpha: 0.08) : null,
+          color: isBlocked
+              ? color.withValues(alpha: 0.14)
+              : isHabit
+              ? color.withValues(alpha: 0.08)
+              : null,
           border: Border.all(color: color, width: borderWidth),
         ),
         child: LayoutBuilder(
@@ -83,8 +89,12 @@ class PlannerBlockWidget extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (isHabit) ...[
-                Icon(Icons.repeat, size: 12, color: color),
+              if (isHabit || isBlocked) ...[
+                Icon(
+                  isBlocked ? Icons.block : Icons.repeat,
+                  size: 12,
+                  color: color,
+                ),
                 const SizedBox(width: 4),
               ],
               Flexible(

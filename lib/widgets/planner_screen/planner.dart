@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
@@ -31,6 +32,13 @@ class _HabitBlock extends _TimelineBlock {
   final HabitOccurrence occurrence;
 }
 
+class _BlockedTimeBlock extends _TimelineBlock {
+  _BlockedTimeBlock(this.blockedTime)
+    : super(blockedTime.startTime, blockedTime.endTime);
+
+  final BlockedTime blockedTime;
+}
+
 class _InteractiveBlock extends _TimelineBlock {
   _InteractiveBlock(super.startTime, super.endTime);
 }
@@ -42,6 +50,7 @@ class Planner extends StatefulWidget {
     required this.baseDate,
     required this.scheduledTasks,
     required this.placedHabits,
+    this.blockedTimes = const [],
     required this.canCreateSlot,
     required this.hasOverlap,
     this.selectedTimeSlot,
@@ -50,6 +59,7 @@ class Planner extends StatefulWidget {
     required this.onUpdateTimeSlot,
     required this.onSelectExistingTask,
     required this.onSelectExistingHabit,
+    required this.onSelectExistingBlockedTime,
     this.sleepRanges = const [],
     this.compressedRanges = const [],
   });
@@ -58,6 +68,7 @@ class Planner extends StatefulWidget {
   final ScrollController scrollController;
   final List<ScheduledTask> scheduledTasks;
   final List<HabitOccurrence> placedHabits;
+  final List<BlockedTime> blockedTimes;
 
   /// Whether tapping free time on the timeline should open a new slot.
   final bool canCreateSlot;
@@ -68,6 +79,7 @@ class Planner extends StatefulWidget {
   final void Function(TimeSlot) onUpdateTimeSlot;
   final void Function(ScheduledTask) onSelectExistingTask;
   final void Function(HabitOccurrence) onSelectExistingHabit;
+  final void Function(BlockedTime) onSelectExistingBlockedTime;
 
   /// Planned sleep shown as a purely visual band behind the timeline.
   final List<SleepRange> sleepRanges;
@@ -122,6 +134,7 @@ class _PlannerState extends State<Planner> {
     return <_TimelineBlock>[
       for (final t in widget.scheduledTasks) _TaskBlock(t),
       for (final h in widget.placedHabits) _HabitBlock(h),
+      for (final b in widget.blockedTimes) _BlockedTimeBlock(b),
     ]..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
@@ -171,6 +184,9 @@ class _PlannerState extends State<Planner> {
     }
     if (block is _HabitBlock && editing is EditingHabitOccurrence) {
       return block.occurrence.id == editing.occurrence.id;
+    }
+    if (block is _BlockedTimeBlock && editing is EditingBlockedTime) {
+      return block.blockedTime.id == editing.blockedTime.id;
     }
     return false;
   }
@@ -323,6 +339,21 @@ class _PlannerState extends State<Planner> {
     );
   }
 
+  Widget _buildBlockedTimeBlock(BlockedTime blockedTime) {
+    return _positioned(
+      start: blockedTime.startTime,
+      end: blockedTime.endTime,
+      child: PlannerBlockWidget(
+        title: blockedTime.name,
+        timeText: blockedTime.timeText,
+        timeTextOneLine: blockedTime.timeTextOneLine,
+        color: CadenceColors.blocked,
+        isBlocked: true,
+        onTap: () => widget.onSelectExistingBlockedTime(blockedTime),
+      ),
+    );
+  }
+
   Widget _buildFreeTimeTapLayer() {
     return Positioned.fill(
       child: GestureDetector(
@@ -460,6 +491,9 @@ class _PlannerState extends State<Planner> {
     return switch (block) {
       _TaskBlock(:final scheduledTask) => _buildTaskBlock(scheduledTask),
       _HabitBlock(:final occurrence) => _buildHabitBlock(occurrence),
+      _BlockedTimeBlock(:final blockedTime) => _buildBlockedTimeBlock(
+        blockedTime,
+      ),
       _InteractiveBlock() => _buildInteractiveSlotBlock(
         block.startTime,
         block.endTime,
@@ -479,7 +513,9 @@ class _PlannerState extends State<Planner> {
     final bool allowTapToCreate =
         widget.canCreateSlot && widget.selectedTimeSlot == null;
     final bool isDayEmpty =
-        widget.scheduledTasks.isEmpty && widget.placedHabits.isEmpty;
+        widget.scheduledTasks.isEmpty &&
+        widget.placedHabits.isEmpty &&
+        widget.blockedTimes.isEmpty;
 
     return Padding(
       padding: EdgeInsets.only(top: _topPadding, bottom: 150),

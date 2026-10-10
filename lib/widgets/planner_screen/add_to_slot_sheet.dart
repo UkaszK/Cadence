@@ -3,6 +3,7 @@ import 'package:cadence/utils/habit_schedule.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/constants/app_constants.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/task.dart';
 import 'package:cadence/providers/planner_providers.dart';
@@ -15,9 +16,12 @@ import 'package:cadence/widgets/library_screen/task_block.dart';
 import 'package:cadence/widgets/reusables/cadence_badge.dart';
 import 'package:cadence/widgets/reusables/cadence_button.dart';
 
-enum _SheetTab { task, habit }
+enum _SheetTab { task, habit, blocked }
 
-/// Opens a bottom sheet to choose a task or habit for the active planner slot.
+const _recentBlockedTimeNamesLimit = 8;
+
+/// Opens a bottom sheet to choose a task, habit or blocked time for the active
+/// planner slot.
 Future<void> showAddToSlotSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -43,114 +47,124 @@ class _AddToSlotSheetState extends ConsumerState<AddToSlotSheet> {
     final selectedDay = ref.watch(
       plannerViewStateNotifierProvider.select((s) => s.selectedDay),
     );
-    final color = switch (_tab) {
-      _SheetTab.task => CadenceColors.accent,
-      _SheetTab.habit => CadenceColors.otherAccent,
-    };
+    final color = _colorOf(_tab);
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.75,
-      ),
-      decoration: BoxDecoration(
-        color: CadenceColors.surface,
-        border: Border(top: BorderSide(width: 1, color: color)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'ADD TO SLOT',
-                    style: GoogleFonts.jetBrainsMono(
-                      color: color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.close,
-                        size: 18,
-                        color: CadenceColors.textSecondary,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+        ),
+        decoration: BoxDecoration(
+          color: CadenceColors.surface,
+          border: Border(top: BorderSide(width: 1, color: color)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'ADD TO SLOT',
+                      style: GoogleFonts.jetBrainsMono(
+                        color: color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              CadenceSwitch<_SheetTab>(
-                options: _SheetTab.values,
-                selection: _tab,
-                labelOf: (t) => switch (t) {
-                  _SheetTab.task => 'TASK',
-                  _SheetTab.habit => 'HABIT',
-                },
-                primaryColorOf: (t) => switch (t) {
-                  _SheetTab.task => CadenceColors.accent,
-                  _SheetTab.habit => CadenceColors.otherAccent,
-                },
-                onChange: (t) => setState(() => _tab = t),
-              ),
-
-              const SizedBox(height: 12),
-
-              Flexible(
-                child: switch (_tab) {
-                  _SheetTab.task => _TaskPicker(
-                    onPick: (task) {
-                      notifier.handleAddTaskToPlan(task);
-                      Navigator.of(context).pop();
-                    },
-                    onCreateNew: () {
-                      final rootNavigator = Navigator.of(
-                        context,
-                        rootNavigator: true,
-                      );
-                      Navigator.of(context).pop();
-                      rootNavigator.push(
-                        MaterialPageRoute(
-                          builder: (_) => TaskFormScreen(
-                            onCreated: notifier.handleAddTaskToPlan,
-                          ),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: CadenceColors.textSecondary,
                         ),
-                      );
-                    },
-                  ),
-                  _SheetTab.habit => _HabitPicker(
-                    day: selectedDay,
-                    onPick: (habit) {
-                      notifier.handleAddHabitToPlan(habit);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                },
-              ),
-            ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                CadenceSwitch<_SheetTab>(
+                  options: _SheetTab.values,
+                  selection: _tab,
+                  labelOf: (t) => switch (t) {
+                    _SheetTab.task => 'TASK',
+                    _SheetTab.habit => 'HABIT',
+                    _SheetTab.blocked => 'BLOCK',
+                  },
+                  primaryColorOf: _colorOf,
+                  onChange: (t) => setState(() => _tab = t),
+                ),
+
+                const SizedBox(height: 12),
+
+                Flexible(
+                  child: switch (_tab) {
+                    _SheetTab.task => _TaskPicker(
+                      onPick: (task) {
+                        notifier.handleAddTaskToPlan(task);
+                        Navigator.of(context).pop();
+                      },
+                      onCreateNew: () {
+                        final rootNavigator = Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        );
+                        Navigator.of(context).pop();
+                        rootNavigator.push(
+                          MaterialPageRoute(
+                            builder: (_) => TaskFormScreen(
+                              onCreated: notifier.handleAddTaskToPlan,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    _SheetTab.habit => _HabitPicker(
+                      day: selectedDay,
+                      onPick: (habit) {
+                        notifier.handleAddHabitToPlan(habit);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    _SheetTab.blocked => _BlockedTimePicker(
+                      onPick: (name) {
+                        notifier.handleAddBlockedTimeToPlan(name);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  static Color _colorOf(_SheetTab tab) => switch (tab) {
+    _SheetTab.task => CadenceColors.accent,
+    _SheetTab.habit => CadenceColors.otherAccent,
+    _SheetTab.blocked => CadenceColors.blocked,
+  };
 }
 
 class _TaskPicker extends ConsumerWidget {
@@ -266,7 +280,7 @@ class _HabitPicker extends ConsumerWidget {
         return _PickerRow(
           color: CadenceColors.otherAccent,
           title: habit.name,
-          isHabit: true,
+          icon: Icons.repeat,
           badges: [
             CadenceBadge(
               label: habit.categoryName.toUpperCase(),
@@ -291,20 +305,160 @@ class _HabitPicker extends ConsumerWidget {
   }
 }
 
+/// Names blocked time for the slot, with recently used names as quick picks.
+class _BlockedTimePicker extends ConsumerStatefulWidget {
+  const _BlockedTimePicker({required this.onPick});
+
+  final void Function(String) onPick;
+
+  @override
+  ConsumerState<_BlockedTimePicker> createState() => _BlockedTimePickerState();
+}
+
+class _BlockedTimePickerState extends ConsumerState<_BlockedTimePicker> {
+  final _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(_onNameChanged);
+  }
+
+  void _onNameChanged() => setState(() {});
+
+  @override
+  void dispose() {
+    _nameController.removeListener(_onNameChanged);
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+    widget.onPick(name);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const color = CadenceColors.blocked;
+    final query = _nameController.text.trim().toLowerCase();
+    final recentNames =
+        (ref.watch(recentBlockedTimeNamesProvider).value ?? const <String>[])
+            .where((n) => n.toLowerCase().contains(query))
+            .take(_recentBlockedTimeNamesLimit)
+            .toList();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'TIME THAT ISN\'T FREE, LIKE EATING OR COMMUTING',
+          style: GoogleFonts.jetBrainsMono(
+            color: CadenceColors.textSecondary,
+            fontSize: 10,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        Row(
+          spacing: 8,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: CadenceColors.textSecondary.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: TextField(
+                  controller: _nameController,
+                  maxLength: AppConstants.blockedTimeNameMaxLength,
+                  autocorrect: false,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(),
+                  cursorColor: CadenceColors.textSecondary,
+                  style: GoogleFonts.jetBrainsMono(
+                    color: CadenceColors.textPrimary,
+                    fontSize: 12,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    isDense: true,
+                    hintText: 'e.g. Lunch, Drive to work...',
+                    hintStyle: GoogleFonts.jetBrainsMono(
+                      color: CadenceColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            CadenceButton(
+              primaryColor: color,
+              label: 'BLOCK',
+              prefixIcon: Icons.block,
+              disabled: query.isEmpty,
+              onPress: _submit,
+            ),
+          ],
+        ),
+
+        if (recentNames.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            'RECENT',
+            style: GoogleFonts.jetBrainsMono(
+              color: CadenceColors.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: recentNames.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final name = recentNames[index];
+                return _PickerRow(
+                  color: color,
+                  title: name,
+                  icon: Icons.block,
+                  onTap: () => widget.onPick(name),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _PickerRow extends StatelessWidget {
   const _PickerRow({
     required this.color,
     required this.title,
-    required this.badges,
+    this.badges = const [],
     required this.onTap,
-    this.isHabit = false,
+    this.icon,
   });
 
   final Color color;
   final String title;
   final List<Widget> badges;
   final VoidCallback onTap;
-  final bool isHabit;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +478,7 @@ class _PickerRow extends StatelessWidget {
             Row(
               spacing: 6,
               children: [
-                if (isHabit) Icon(Icons.repeat, size: 14, color: color),
+                if (icon != null) Icon(icon, size: 14, color: color),
                 Expanded(
                   child: Text(
                     title,
@@ -339,7 +493,7 @@ class _PickerRow extends StatelessWidget {
                 Icon(Icons.chevron_right, size: 16, color: color),
               ],
             ),
-            Row(spacing: 5, children: badges),
+            if (badges.isNotEmpty) Row(spacing: 5, children: badges),
           ],
         ),
       ),

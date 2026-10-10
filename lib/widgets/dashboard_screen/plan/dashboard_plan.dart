@@ -1,11 +1,13 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/sub_task.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/utils/get_time_text.dart';
+import 'package:cadence/widgets/dashboard_screen/plan/planned_blocked_time_block.dart';
 import 'package:cadence/widgets/dashboard_screen/plan/planned_habit_block.dart';
 import 'package:cadence/widgets/dashboard_screen/plan/scheduled_task_block.dart';
 import 'package:cadence/widgets/reusables/cadence_section_header.dart';
@@ -28,11 +30,19 @@ class _HabitEntry extends _PlanEntry {
   DateTime get startTime => occurrence.startTime!;
 }
 
+class _BlockedTimeEntry extends _PlanEntry {
+  _BlockedTimeEntry(this.blockedTime);
+  final BlockedTime blockedTime;
+  @override
+  DateTime get startTime => blockedTime.startTime;
+}
+
 class DashboardPlan extends StatelessWidget {
   const DashboardPlan({
     super.key,
     required this.scheduledTasks,
     required this.placedHabits,
+    this.blockedTimes = const [],
     required this.onCheckScheduledTask,
     required this.onCheckSubTask,
     required this.onCheckHabitOccurrence,
@@ -41,6 +51,7 @@ class DashboardPlan extends StatelessWidget {
 
   final List<ScheduledTask> scheduledTasks;
   final List<HabitOccurrence> placedHabits;
+  final List<BlockedTime> blockedTimes;
   final void Function(ScheduledTask, bool) onCheckScheduledTask;
   final void Function(ScheduledTask, SubTask, bool) onCheckSubTask;
   final void Function(HabitOccurrence, bool) onCheckHabitOccurrence;
@@ -123,6 +134,7 @@ class DashboardPlan extends StatelessWidget {
     final entries = <_PlanEntry>[
       for (final t in scheduledTasks) _TaskEntry(t),
       for (final h in placedHabits) _HabitEntry(h),
+      for (final b in blockedTimes) _BlockedTimeEntry(b),
     ]..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     String? timelineText;
@@ -131,6 +143,7 @@ class DashboardPlan extends StatelessWidget {
       final end = [
         for (final t in scheduledTasks) t.endTime,
         for (final h in placedHabits) h.endTime!,
+        for (final b in blockedTimes) b.endTime,
       ].reduce((a, b) => a.isAfter(b) ? a : b);
       timelineText = getTimeText(start, end, false);
     }
@@ -155,6 +168,9 @@ class DashboardPlan extends StatelessWidget {
                 occurrence: occurrence,
                 onCheck: (newValue) =>
                     onCheckHabitOccurrence(occurrence, newValue),
+              ),
+              _BlockedTimeEntry(:final blockedTime) => PlannedBlockedTimeBlock(
+                blockedTime: blockedTime,
               ),
             },
           ],

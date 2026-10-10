@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cadence/data/app_settings.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/habit.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/quick_note.dart';
@@ -20,6 +21,7 @@ class IsarDataStore {
       HabitSchema,
       ScheduledTaskSchema,
       HabitOccurrenceSchema,
+      BlockedTimeSchema,
       QuickNoteSchema,
       AppSettingsSchema,
     ], directory: dir.path);
@@ -116,6 +118,25 @@ class IsarDataStore {
   static void deleteScheduledTask(ScheduledTask scheduledTask) {
     instance.writeTxnSync(
       () => instance.scheduledTasks.deleteSync(scheduledTask.id),
+    );
+  }
+
+  // BlockedTime
+  static Stream<List<BlockedTime>> watchAllBlockedTimes() =>
+      instance.blockedTimes.where().watch(fireImmediately: true);
+
+  static void addBlockedTime(BlockedTime blockedTime) {
+    instance.writeTxnSync(() => instance.blockedTimes.putSync(blockedTime));
+  }
+
+  static void updateBlockedTime(int id, BlockedTime blockedTime) {
+    blockedTime.id = id;
+    instance.writeTxnSync(() => instance.blockedTimes.putSync(blockedTime));
+  }
+
+  static void deleteBlockedTime(BlockedTime blockedTime) {
+    instance.writeTxnSync(
+      () => instance.blockedTimes.deleteSync(blockedTime.id),
     );
   }
 

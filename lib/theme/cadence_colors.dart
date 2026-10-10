@@ -32,4 +32,7 @@ class CadenceColors {
   static const Color info = Color.fromARGB(255, 173, 216, 230);
 
   static const Color gold = Color.fromARGB(255, 240, 196, 100);
+
+  /// Blocked time in the Planner, e.g. meals or commuting.
+  static const Color blocked = Color.fromARGB(255, 158, 150, 176);
 }

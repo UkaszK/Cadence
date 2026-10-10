@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cadence/data/app_settings.dart';
+import 'package:cadence/data/blocked_time.dart';
 import 'package:cadence/data/habit_occurrence.dart';
 import 'package:cadence/data/scheduled_task.dart';
 import 'package:cadence/data/time_slot.dart';
@@ -11,12 +12,16 @@ import 'package:cadence/providers/schedule_providers.dart';
 import 'package:cadence/providers/settings_providers.dart';
 import 'package:cadence/theme/cadence_colors.dart';
 import 'package:cadence/utils/DateTime/date_time_extension.dart';
+import 'package:cadence/utils/free_time.dart';
+import 'package:cadence/utils/planner_time_scale.dart';
 import 'package:cadence/utils/sleep_time.dart';
 import 'package:cadence/widgets/planner_screen/active_time_slot_bar.dart';
 import 'package:cadence/widgets/planner_screen/day_picker.dart';
+import 'package:cadence/widgets/planner_screen/edit_blocked_time_sheet.dart';
 import 'package:cadence/widgets/planner_screen/edit_scheduled_task_sheet.dart';
 import 'package:cadence/widgets/planner_screen/planner.dart';
 import 'package:cadence/widgets/cadence_loading_screen.dart';
+import 'package:cadence/widgets/library_screen/task_block.dart';
 
 class PlannerScreen extends ConsumerStatefulWidget {
   const PlannerScreen({super.key});
@@ -37,6 +42,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   bool _hasOverlap(
     List<ScheduledTask> scheduledTasks,
     List<HabitOccurrence> placedHabits,
+    List<BlockedTime> blockedTimes,
     TimeSlot? slot,
     EditingPlannerItem? editing,
   ) {
@@ -53,6 +59,10 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       EditingHabitOccurrence(:final occurrence) => occurrence.id,
       _ => null,
     };
+    final editingBlockedTimeId = switch (editing) {
+      EditingBlockedTime(:final blockedTime) => blockedTime.id,
+      _ => null,
+    };
 
     return scheduledTasks.any(
           (t) => t.id != editingTaskId && overlaps(t.startTime, t.endTime),
@@ -60,7 +70,26 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         placedHabits.any(
           (h) =>
               h.id != editingOccurrenceId && overlaps(h.startTime!, h.endTime!),
+        ) ||
+        blockedTimes.any(
+          (b) =>
+              b.id != editingBlockedTimeId && overlaps(b.startTime, b.endTime),
         );
+  }
+
+  /// Minutes of [day] not taken by planned sleep or any planner block.
+  int _freeMinutes(DateTime day, PlannerState state, List<SleepRange> sleep) {
+    MinuteRange rangeOf(DateTime start, DateTime end) => (
+      start: start.difference(day).inMinutes,
+      end: end.difference(day).inMinutes,
+    );
+
+    return freeMinutesInDay([
+      ...sleep,
+      for (final t in state.scheduledTasks) rangeOf(t.startTime, t.endTime),
+      for (final h in state.placedHabits) rangeOf(h.startTime!, h.endTime!),
+      for (final b in state.blockedTimes) rangeOf(b.startTime, b.endTime),
+    ]);
   }
 
   @override
@@ -98,14 +127,22 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       );
     }
 
+    Future<void> editBlockedTimeName(BlockedTime blockedTime) async {
+      final name = await showEditBlockedTimeSheet(context, blockedTime.name);
+      if (name == null) return;
+      notifier.handleRenameBlockedTime(name);
+    }
+
     return plannerStateAsync.when(
       data: (state) {
         final hasOverlap = _hasOverlap(
           state.scheduledTasks,
           state.placedHabits,
+          state.blockedTimes,
           selectedTimeSlot,
           editingItem,
         );
+        final freeMinutes = _freeMinutes(baseDate, state, sleepRanges);
         return Scaffold(
           body: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -134,12 +171,19 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                         FadeInTransition(
                           delay: const Duration(milliseconds: 100),
                           child: _PlannerTitle(
-                            rightSide: Text(
-                              selectedDay.toDDMMYYYY('-'),
-                              style: GoogleFonts.jetBrainsMono(
-                                color: CadenceColors.accent,
-                                fontSize: 10,
-                              ),
+                            rightSide: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              spacing: 2,
+                              children: [
+                                _FreeTimeLabel(minutes: freeMinutes),
+                                Text(
+                                  selectedDay.toDDMMYYYY('-'),
+                                  style: GoogleFonts.jetBrainsMono(
+                                    color: CadenceColors.accent,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -152,6 +196,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                             baseDate: baseDate,
                             scheduledTasks: state.scheduledTasks,
                             placedHabits: state.placedHabits,
+                            blockedTimes: state.blockedTimes,
                             canCreateSlot: !hasTimeSlot,
                             hasOverlap: hasOverlap,
                             selectedTimeSlot: selectedTimeSlot,
@@ -162,6 +207,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                                 notifier.handleSelectExistingScheduledTask,
                             onSelectExistingHabit:
                                 notifier.handleSelectExistingHabitOccurrence,
+                            onSelectExistingBlockedTime:
+                                notifier.handleSelectExistingBlockedTime,
                             sleepRanges: sleepRanges,
                             compressedRanges: nightRanges,
                           ),
@@ -214,10 +261,18 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                             onClickAddItem: () =>
                                 notifier.onClickAddItem(context),
                             onEditDetails: () {
-                              if (editingItem is! EditingScheduledTask) return;
-                              editTaskDetails(editingItem.scheduledTask);
+                              switch (editingItem) {
+                                case EditingScheduledTask(:final scheduledTask):
+                                  editTaskDetails(scheduledTask);
+                                case EditingBlockedTime(:final blockedTime):
+                                  editBlockedTimeName(blockedTime);
+                                default:
+                                  return;
+                              }
                             },
-                            canEditDetails: editingItem is EditingScheduledTask,
+                            canEditDetails:
+                                editingItem is EditingScheduledTask ||
+                                editingItem is EditingBlockedTime,
                           )
                         : const SizedBox.shrink(
                             key: ValueKey('slot-bar-empty'),
@@ -255,6 +310,35 @@ class _PlannerTitle extends StatelessWidget {
         ),
 
         rightSide,
+      ],
+    );
+  }
+}
+
+class _FreeTimeLabel extends StatelessWidget {
+  const _FreeTimeLabel({required this.minutes});
+
+  final int minutes;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = minutes == 0
+        ? CadenceColors.warning
+        : CadenceColors.textSecondary;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        Icon(Icons.hourglass_empty, size: 11, color: color),
+        Text(
+          'FREE: ${formatDurationLabel(minutes)}',
+          style: GoogleFonts.jetBrainsMono(
+            color: color,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
